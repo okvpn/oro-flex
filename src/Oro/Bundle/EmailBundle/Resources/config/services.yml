@@ -115,14 +115,14 @@ services:
             - '@oro_sync.websocket_client'
             - '@oro_sync.client.connection_checker'
 
-    oro_email.event_listener.email_user_listener:
-        class: Oro\Bundle\EmailBundle\EventListener\EmailUserListener
-        arguments:
-            - '@Psr\Container\ContainerInterface'
-        tags:
-            - { name: doctrine.event_listener, event: onFlush, priority: 1 }
-            - { name: doctrine.event_listener, event: postFlush, priority: 1 }
-            - { name: container.service_subscriber, id: oro_email.email_websocket.processor }
+#    oro_email.event_listener.email_user_listener:
+#        class: Oro\Bundle\EmailBundle\EventListener\EmailUserListener
+#        arguments:
+#            - '@Psr\Container\ContainerInterface'
+#        tags:
+#            - { name: doctrine.event_listener, event: onFlush, priority: 1 }
+#            - { name: doctrine.event_listener, event: postFlush, priority: 1 }
+#            - { name: container.service_subscriber, id: oro_email.email_websocket.processor }
 
     oro_email.email.entity.batch_processor:
         class: Oro\Bundle\EmailBundle\Builder\EmailEntityBatchProcessor
@@ -132,32 +132,32 @@ services:
             - '@oro_email.email.owner.provider'
             - '@event_dispatcher'
 
-    oro_email.listener.entity_listener:
-        class: Oro\Bundle\EmailBundle\EventListener\EntityListener
-        arguments:
-            - '@oro_message_queue.client.message_producer'
-            - '@Psr\Container\ContainerInterface'
-        tags:
-            - { name: doctrine.event_listener, event: onFlush }
-            - { name: doctrine.event_listener, event: postFlush }
-            - { name: doctrine.event_listener, event: postRemove }
-            - { name: container.service_subscriber, id: oro_email.email.owner.manager }
-            - { name: container.service_subscriber, id: oro_email.email.thread.manager }
-            - { name: container.service_subscriber, id: oro_email.email.activity.manager }
-            - { name: container.service_subscriber, id: oro_email.model.email_activity_updates }
-            - { name: container.service_subscriber, id: oro_email.email.address.manager }
-            - { name: container.service_subscriber, id: oro_email.email_address_visibility.manager }
+#    oro_email.listener.entity_listener:
+#        class: Oro\Bundle\EmailBundle\EventListener\EntityListener
+#        arguments:
+#            - '@oro_message_queue.client.message_producer'
+#            - '@Psr\Container\ContainerInterface'
+#        tags:
+#            - { name: doctrine.event_listener, event: onFlush }
+#            - { name: doctrine.event_listener, event: postFlush }
+#            - { name: doctrine.event_listener, event: postRemove }
+#            - { name: container.service_subscriber, id: oro_email.email.owner.manager }
+#            - { name: container.service_subscriber, id: oro_email.email.thread.manager }
+#            - { name: container.service_subscriber, id: oro_email.email.activity.manager }
+#            - { name: container.service_subscriber, id: oro_email.model.email_activity_updates }
+#            - { name: container.service_subscriber, id: oro_email.email.address.manager }
+#            - { name: container.service_subscriber, id: oro_email.email_address_visibility.manager }
 
-    oro_email.listener.auto_response_listener:
-        class: Oro\Bundle\EmailBundle\EventListener\AutoResponseListener
-        arguments:
-            - '@Psr\Container\ContainerInterface'
-        tags:
-            - { name: doctrine.event_listener, event: onFlush }
-            - { name: doctrine.event_listener, event: postFlush }
-            - { name: oro_featuretogle.feature, feature: email }
-            - { name: container.service_subscriber }
-            - { name: container.service_subscriber, id: oro_email.autoresponserule_manager }
+#    oro_email.listener.auto_response_listener:
+#        class: Oro\Bundle\EmailBundle\EventListener\AutoResponseListener
+#        arguments:
+#            - '@Psr\Container\ContainerInterface'
+#        tags:
+#            - { name: doctrine.event_listener, event: onFlush }
+#            - { name: doctrine.event_listener, event: postFlush }
+#            - { name: oro_featuretogle.feature, feature: email }
+#            - { name: container.service_subscriber }
+#            - { name: container.service_subscriber, id: oro_email.autoresponserule_manager }
 
     oro_email.async.auto_response:
         class: 'Oro\Bundle\EmailBundle\Async\AutoResponseMessageProcessor'

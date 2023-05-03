@@ -1,4 +1,0 @@
-dynamic-imports:
-    commons:
-        - orodigitalasset/js/app/views/digital-asset-choose-form-view
-        - orodigitalasset/js/widget/digital-asset-dialog-widget

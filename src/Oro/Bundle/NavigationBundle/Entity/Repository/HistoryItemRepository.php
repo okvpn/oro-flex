@@ -20,6 +20,8 @@ class HistoryItemRepository extends EntityRepository implements NavigationReposi
      */
     public function getNavigationItems($user, Organization $organization, $type = null, $options = array())
     {
+        return []; // Disable for performace
+
         $qb = $this->_em->createQueryBuilder();
         $qb
             ->select(

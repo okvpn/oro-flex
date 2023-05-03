@@ -45,7 +45,7 @@ class ConnectionChecker implements LoggerAwareInterface, ResettableInterface
                 if ($this->applicationState instanceof ApplicationState
                     && $this->applicationState->isInstalled()
                 ) {
-                    $this->logger->error(
+                    $this->logger->warning(
                         'Failed to connect to websocket server: {message}',
                         ['message' => $exception->getMessage(), 'e' => $exception]
                     );

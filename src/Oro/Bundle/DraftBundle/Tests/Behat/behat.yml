@@ -1,5 +1,0 @@
-oro_behat_extension:
-    suites:
-        OroDraftBundle:
-            paths:
-                - '@OroDraftBundle/Tests/Behat/Features'

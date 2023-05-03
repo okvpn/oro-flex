@@ -35,6 +35,12 @@ class AttachmentEntityConfiguration implements EntityConfigInterface
                 ->info('`boolean` can be used to prohibit changing the attachment association state (regardless of ' .
                     'whether it is enabled or not) for the entity. If TRUE than the current state cannot be changed.')
             ->end()
+            ->node('use_dam', 'normalized_boolean')
+                ->defaultFalse()
+            ->end()
+            ->node('acl_protected', 'normalized_boolean')
+                ->defaultTrue()
+            ->end()
         ;
     }
 }

@@ -18,8 +18,8 @@ class UpdateAttachmentFieldConfigForAttributeFamilyImage implements Migration
      */
     public function up(Schema $schema, QueryBag $queries)
     {
-        $queries->addPostQuery(
-            new UpdateEntityConfigFieldValueQuery(AttributeFamily::class, 'image', 'attachment', 'acl_protected', false)
-        );
+//        $queries->addPostQuery(
+//            new UpdateEntityConfigFieldValueQuery(AttributeFamily::class, 'image', 'attachment', 'acl_protected', false)
+//        );
     }
 }

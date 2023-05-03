@@ -230,7 +230,12 @@ class ExtendConfigDumper
             // in case if a parent class is changed in a new version of a code
             if (isset($schema['type'], $schema['class'], $schema['entity']) && $schema['type'] === 'Extend') {
                 $entityClassName = $schema['entity'];
-                $parentClassName = get_parent_class($schema['class']);
+                try {
+                    $parentClassName = get_parent_class($schema['class']);
+                } catch (\Throwable $e) {
+                    throw new \RuntimeException("Class {$schema['class']} was removed - " . $e->getMessage(), 0, $e);
+                }
+
                 if ($parentClassName !== $entityClassName) {
                     $inheritClassName = get_parent_class($parentClassName);
 

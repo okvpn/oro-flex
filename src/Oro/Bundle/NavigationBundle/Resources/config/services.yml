@@ -197,19 +197,19 @@ services:
             - '@oro_security.token_accessor'
             - '@oro_navigation.title_service'
 
-    oro_navigation.event_listener.navigation_history:
-        class: Oro\Bundle\NavigationBundle\Event\ResponseHistoryListener
-        arguments:
-            - '@oro_security.token_accessor'
-            - 'Oro\Bundle\UserBundle\Entity\User'
-            - '@Psr\Container\ContainerInterface'
-        calls:
-            - [ addExcludedRoute, ['oro_default']]
-            - [ addExcludedRoute, ['nelmio_api_doc_index']]
-            - [ addExcludedRoute, ['oro_rest_api_doc_resource']]
-        tags:
-            - { name: kernel.event_listener, event: kernel.response, method: onResponse }
-            - { name: container.service_subscriber, id: oro_navigation.navigation_history_logger }
+#    oro_navigation.event_listener.navigation_history:
+#        class: Oro\Bundle\NavigationBundle\Event\ResponseHistoryListener
+#        arguments:
+#            - '@oro_security.token_accessor'
+#            - 'Oro\Bundle\UserBundle\Entity\User'
+#            - '@Psr\Container\ContainerInterface'
+#        calls:
+#            - [ addExcludedRoute, ['oro_default']]
+#            - [ addExcludedRoute, ['nelmio_api_doc_index']]
+#            - [ addExcludedRoute, ['oro_rest_api_doc_resource']]
+#        tags:
+#            - { name: kernel.event_listener, event: kernel.response, method: onResponse }
+#            - { name: container.service_subscriber, id: oro_navigation.navigation_history_logger }
 
     oro_navigation.event.master_request_route_listener:
         class: Oro\Bundle\NavigationBundle\Event\AddMasterRequestRouteListener

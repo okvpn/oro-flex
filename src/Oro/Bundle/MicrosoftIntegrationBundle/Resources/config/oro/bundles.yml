@@ -1,2 +1,0 @@
-bundles:
-    - { name: Oro\Bundle\MicrosoftIntegrationBundle\OroMicrosoftIntegrationBundle, priority: -74 }

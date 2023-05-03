@@ -282,6 +282,7 @@ class EmailExtension extends AbstractExtension implements ServiceSubscriberInter
      */
     public function getUnreadEmailsCount()
     {
+        return []; // TODO: Disable
         $tokenAccessor = $this->getTokenAccessor();
         $currentUser = $tokenAccessor->getUser();
         if (null === $currentUser || !$this->getAuthorizationChecker()->isGranted('oro_email_email_user_view')) {

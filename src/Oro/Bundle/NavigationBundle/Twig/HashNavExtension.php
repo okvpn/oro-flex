@@ -26,7 +26,7 @@ class HashNavExtension extends AbstractExtension
      */
     public function onKernelRequest(RequestEvent $event): void
     {
-        if ($event->getRequestType() === HttpKernel::MASTER_REQUEST) {
+        if ($event->getRequestType() === HttpKernel::MAIN_REQUEST) {
             $this->request = $event->getRequest();
         }
     }

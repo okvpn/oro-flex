@@ -8,8 +8,7 @@ placeholders:
             items:
                 user_dots_menu:
                     order: 150
-                help:
-                    order: 100
+
         form_buttons:
             items:
                 add_update_delete:
@@ -45,8 +44,7 @@ placeholders:
     items:
         logo:
             template: '@@OroUI/Default/logo.html.twig'
-        help:
-            template: '@@OroUI/Default/help.html.twig'
+
         user_dots_menu:
             template: '@@OroUI/Default/user_dots_menu.html.twig'
         add_update_delete:

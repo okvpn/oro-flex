@@ -16,3 +16,4 @@ bundles:
     - { name: Stof\DoctrineExtensionsBundle\StofDoctrineExtensionsBundle, priority: -175 }
     - { name: Liip\ImagineBundle\LiipImagineBundle, priority: -165 }
     - { name: Oro\Bundle\PlatformBundle\OroPlatformBundle, priority: -200 }
+    - { name: Snc\RedisBundle\SncRedisBundle, priority: -211 }

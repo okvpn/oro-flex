@@ -1,6 +1,0 @@
-oro:
-    draft:
-        operations:
-            publish:
-                label: Publish draft
-                message: Are you sure you want to publicate draft?
