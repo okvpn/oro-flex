@@ -1,4 +1,11 @@
 <code>
-    {% set argumentsStr = record.getValue('arguments')|join(' ') %}
+    {% set opts = record.getValue('arguments') %}
+    {% set argumentsStr = '' %}
+    {% if opts[0] is defined %}
+        {% set argumentsStr = record.getValue('arguments')|join(' ') %}
+    {% elseif opts %}
+        {% set argumentsStr = record.getValue('arguments')|map((value, key) => "#{key}=#{value}")|join(' ') %}
+    {% endif %}
+
     {{ record.getValue('command') }} {{ argumentsStr|length <= 30 ? argumentsStr : argumentsStr|slice(0, 30)|trim(side='right') ~ '...' }}
 </code>

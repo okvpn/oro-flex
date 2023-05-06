@@ -1,4 +1,37 @@
 services:
+    Oro\Bundle\CronBundle\Loader\ScheduleFactoryDecorator:
+        decorates: okvpn_cron.schedule_factory
+        arguments:
+            - '@.inner'
+            - '@doctrine'
+
+    Oro\Bundle\CronBundle\Loader\CommandCronLoader:
+        arguments:
+            - '@okvpn_cron.schedule_factory'
+            - '@kernel'
+            - '@oro_cache.core'
+        tags:
+            - { name: okvpn_cron.loader }
+
+    Oro\Bundle\CronBundle\Middleware\AsyncCronMiddleware:
+        arguments:
+            - '@oro_message_queue.client.message_producer'
+            - '%kernel.environment%'
+        tags:
+            - { name: okvpn_cron.middleware, priority: -1 }
+
+    Oro\Bundle\CronBundle\Middleware\ActiveCronMiddleware:
+        arguments:
+            - '@kernel'
+        tags:
+            - { name: okvpn_cron.middleware, priority: 5 }
+    
+    Oro\Bundle\CronBundle\Loader\ScheduleTableLoader:
+        arguments:
+            - '@doctrine'
+            - '@okvpn_cron.loader_default'
+            - '@oro_cache.core'
+
     oro_cron.schedule_manager:
         class: Oro\Bundle\CronBundle\Entity\Manager\ScheduleManager
         arguments:
@@ -69,15 +102,6 @@ services:
         tags:
             - {name: doctrine.event_listener, event: onSchemaColumnDefinition }
 
-    oro_cron.repository.schedule:
-        class: Oro\Bundle\CronBundle\Entity\Repository\ScheduleRepository
-        public: true
-        factory: ['@doctrine', getRepository]
-        arguments:
-            - 'Oro\Bundle\CronBundle\Entity\Schedule'
-        calls:
-            - [setFeatureChecker, ['@oro_featuretoggle.checker.feature_checker']]
-
     oro_cron.configuration.feature_configuration_extension:
         class: Oro\Bundle\CronBundle\Configuration\FeatureConfigurationExtension
         tags:
@@ -103,3 +127,8 @@ services:
 
     oro_cron.checker.schedule_interval_checker:
         class: Oro\Bundle\CronBundle\Checker\ScheduleIntervalChecker
+
+    Oro\Bundle\CronBundle\Tools\ScheduleExecutorFacade:
+        public: true
+        arguments:
+            - '@oro_cron.async.command_runner'

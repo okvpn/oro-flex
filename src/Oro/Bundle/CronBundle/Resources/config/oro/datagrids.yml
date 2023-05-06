@@ -1,33 +1,65 @@
 datagrids:
-
     oro-cron-schedules-grid:
         acl_resource: oro_cron_schedule_view
-        options:
-            entityHint: oro.cron.schedule.entity_plural_label
         source:
             type: orm
-            query_builder: "@oro_cron.repository.schedule->getEnabledSchedulesQb"
+            query:
+                select:
+                    - s.id
+                    - s.command
+                    - s.status
+                    - s.arguments
+                    - s.definition
+                    - s.overwriteDefinition
+                    - s.enabled
+                from:
+                    - { table: 'Oro\Bundle\CronBundle\Entity\Schedule' , alias: s }
+        inline_editing:
+            enable: true
+            entity_name: 'Oro\Bundle\CronBundle\Entity\Schedule'
         columns:
+            id:
+                label: ID
+            status:
+                label: Status
+                inline_editing:
+                    enable: false
             command:
                 label: oro.cron.schedule.command.label
                 cellClassName: 'direction-ltr'
                 type: twig
                 template: '@OroCron/Schedule/Datagrid/command.html.twig'
                 frontend_type: html
+                inline_editing:
+                    enable: false
             definition:
                 label: oro.cron.schedule.definition.label
                 cellClassName: 'direction-ltr'
                 type: twig
                 template: '@OroCron/Schedule/Datagrid/definition.html.twig'
                 frontend_type: html
+                inline_editing:
+                    enable: false
+            overwriteDefinition:
+                label: Overwrite Definition
+            enabled:
+                label: Manual Toggle
+                frontend_type: boolean
         sorters:
             columns:
                 command:
                     data_name: s.command
                 definition:
                     data_name: s.definition
+                id:
+                    data_name: s.id
+            default:
+                id: DESC
         filters:
             columns:
+                status:
+                    type: string
+                    data_name: s.status
                 command:
                     type: command_with_args
                     data_name: s.command, s.arguments

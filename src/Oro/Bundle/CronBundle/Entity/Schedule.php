@@ -6,9 +6,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Oro\Bundle\EntityConfigBundle\Metadata\Annotation\Config;
 
 /**
- * @ORM\Table(name="oro_cron_schedule", uniqueConstraints={
- *      @ORM\UniqueConstraint(name="UQ_COMMAND", columns={"command", "args_hash", "definition"})
- * })
+ * @ORM\Table(name="oro_cron_schedule")
  * @ORM\Entity(repositoryClass="Oro\Bundle\CronBundle\Entity\Repository\ScheduleRepository")
  * @Config(
  *      defaultValues={
@@ -44,7 +42,7 @@ class Schedule
     /**
      * @var array
      *
-     * @ORM\Column(name="args", type = "json_array")
+     * @ORM\Column(name="args", type = "json")
      */
     protected $arguments;
 
@@ -61,6 +59,27 @@ class Schedule
      * @ORM\Column(name="definition", type="string", length=100, nullable=true)
      */
     protected $definition;
+
+    /**
+     * @var string
+     *
+     * @ORM\Column(name="overwrite_definition", type="string", length=100, nullable=true)
+     */
+    protected $overwriteDefinition;
+
+    /**
+     * @var boolean
+     *
+     * @ORM\Column(name="enabled", type="boolean", nullable=false)
+     */
+    protected $enabled = true;
+
+    /**
+     * @var string
+     *
+     * @ORM\Column(name="status", type="string", nullable=true, length=32)
+     */
+    protected $status;
 
     public function __construct()
     {
@@ -96,6 +115,7 @@ class Schedule
     public function setCommand($command)
     {
         $this->command = $command;
+        $this->argumentsHash = $this->calculateHash($command, $this->arguments);
 
         return $this;
     }
@@ -114,12 +134,19 @@ class Schedule
      */
     public function setArguments(array $arguments)
     {
-        sort($arguments);
+        asort($arguments);
 
         $this->arguments = $arguments;
-        $this->argumentsHash = md5(json_encode($arguments));
+        $this->argumentsHash = $this->calculateHash($this->command, $arguments);
 
         return $this;
+    }
+
+    public static function calculateHash($command, array $arguments): string
+    {
+        asort($arguments);
+
+        return md5(json_encode([$command, $arguments]));
     }
 
     /**
@@ -146,13 +173,6 @@ class Schedule
      * │    └──────────────────── hour (0 - 23)
      * └───────────────────────── min (0 - 59)
      *
-     * Predefined values are:
-     *  @yearly (or @annually)  Run once a year at midnight in the morning of January 1                 0 0 1 1 *
-     *  @monthly                Run once a month at midnight in the morning of the first of the month   0 0 1 * *
-     *  @weekly                 Run once a week at midnight in the morning of Sunday                    0 0 * * 0
-     *  @daily                  Run once a day at midnight                                              0 0 * * *
-     *  @hourly                 Run once an hour at the beginning of the hour                           0 * * * *
-     *
      * @param  string  $definition New cron definition
      * @return Schedule
      */
@@ -177,5 +197,51 @@ class Schedule
     public function getArgumentsHash()
     {
         return $this->argumentsHash;
+    }
+
+    /**
+     * @return string
+     */
+    public function getOverwriteDefinition(): ?string
+    {
+        return $this->overwriteDefinition;
+    }
+
+    public function setOverwriteDefinition(string $overwriteDefinition = null)
+    {
+        $this->overwriteDefinition = $overwriteDefinition;
+        return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isEnabled(): bool
+    {
+        return $this->enabled;
+    }
+
+    public function setEnabled(bool $enabled)
+    {
+        $this->enabled = $enabled;
+        return $this;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getStatus(): ?string
+    {
+        return $this->status;
+    }
+
+    /**
+     * @param string $status
+     * @return Schedule
+     */
+    public function setStatus(?string $status)
+    {
+        $this->status = $status;
+        return $this;
     }
 }

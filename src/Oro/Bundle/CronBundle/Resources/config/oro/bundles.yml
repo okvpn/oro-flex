@@ -1,2 +1,3 @@
 bundles:
+    - { name: Okvpn\Bundle\CronBundle\OkvpnCronBundle, priority: -90 }
     - { name: Oro\Bundle\CronBundle\OroCronBundle, priority: -80 }

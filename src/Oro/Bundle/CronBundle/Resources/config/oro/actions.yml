@@ -2,3 +2,18 @@ operations:
     DELETE:
         exclude_datagrids:
             - jobs-grid
+
+    run_cron_command:
+        label: Run cron command
+        datagrids:
+            - oro-cron-schedules-grid
+        button_options:
+            icon: fa-play
+        actions:
+            - '@call_service_method':
+                  service: Oro\Bundle\CronBundle\Tools\ScheduleExecutorFacade
+                  method: run
+                  method_parameters: [$.data]
+            - '@flash_message':
+                  message: 'The command was scheduled'
+                  type: 'success'

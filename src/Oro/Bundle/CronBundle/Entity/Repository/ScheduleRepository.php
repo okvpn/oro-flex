@@ -3,37 +3,26 @@
 namespace Oro\Bundle\CronBundle\Entity\Repository;
 
 use Doctrine\ORM\EntityRepository;
-use Oro\Bundle\FeatureToggleBundle\Checker\FeatureChecker;
+use Oro\Bundle\CronBundle\Entity\Schedule;
 
 class ScheduleRepository extends EntityRepository
 {
-    /** @var FeatureChecker */
-    private $featureChecker;
-
     /**
-     * @return \Doctrine\ORM\QueryBuilder
+     * @return array|Schedule[]
      */
-    public function getEnabledSchedulesQb()
+    public function overwrittenSchedule(): array
     {
-        $queryBuilder = $this->_em->createQueryBuilder();
-        $queryBuilder
-            ->select('s.command, s.arguments, s.definition')
-            ->from('OroCronBundle:Schedule', 's')
-        ;
+        /** @var Schedule[] $schedules */
+        $schedules = $this->createQueryBuilder('s')
+            ->where('s.overwriteDefinition IS NOT NULL')
+            ->orWhere('s.enabled = false')
+            ->getQuery()->getResult();
 
-        $disabledJobs = $this->featureChecker->getDisabledResourcesByType('cron_jobs');
-        if ($disabledJobs) {
-            $queryBuilder
-                ->where($queryBuilder->expr()->notIn('s.command', ':disabledJobs'))
-                ->setParameter('disabledJobs', $disabledJobs)
-            ;
+        $map = [];
+        foreach ($schedules as $schedule) {
+            $map[$schedule->getArgumentsHash()] = $schedule;
         }
 
-        return $queryBuilder;
-    }
-
-    public function setFeatureChecker(FeatureChecker $checker)
-    {
-        $this->featureChecker = $checker;
+        return $map;
     }
 }

@@ -16,5 +16,6 @@ services:
     Oro\Bundle\CronBundle\Command\CronDefinitionsLoadCommand:
         arguments:
             - '@doctrine'
+            - '@Oro\Bundle\CronBundle\Loader\ScheduleTableLoader'
         tags:
             - { name: console.command }
