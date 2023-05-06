@@ -99,7 +99,6 @@ class OroOrganizationBundleInstaller implements Installation, ExtendExtensionAwa
                 'oro_options' => [
                     'extend'    => ['is_extend' => true, 'owner' => ExtendScope::OWNER_CUSTOM],
                     'datagrid'  => ['is_visible' => DatagridScope::IS_VISIBLE_FALSE],
-                    'merge'     => ['display' => true],
                     'dataaudit' => ['auditable' => true],
                     'form'      => ['type' => OroResizeableRichTextType::class],
                     'view'      => ['type' => 'html'],

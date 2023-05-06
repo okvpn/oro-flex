@@ -18,10 +18,10 @@ class ConfigureClearersPass implements CompilerPassInterface
      */
     public function process(ContainerBuilder $container)
     {
-        $container->getDefinition('oro_message_queue.consumption.container_reset_extension')
-            ->replaceArgument(
-                0,
-                $this->findAndSortTaggedServices('oro_message_queue.consumption.clearer', $container)
-            );
+//        $container->getDefinition('oro_message_queue.consumption.container_reset_extension')
+//            ->replaceArgument(
+//                0,
+//                $this->findAndSortTaggedServices('oro_message_queue.consumption.clearer', $container)
+//            );
     }
 }

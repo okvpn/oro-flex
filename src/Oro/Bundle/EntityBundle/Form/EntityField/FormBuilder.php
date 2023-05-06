@@ -7,7 +7,6 @@ use Doctrine\Common\Util\ClassUtils;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Doctrine\ORM\Mapping\MappingException;
-use Oro\Bundle\CurrencyBundle\Form\Type\CurrencyType;
 use Oro\Bundle\FormBundle\Form\Type\OroDateTimeType;
 use Oro\Bundle\FormBundle\Form\Type\OroDateType;
 use Oro\Bundle\FormBundle\Form\Type\OroPercentType;
@@ -38,7 +37,7 @@ class FormBuilder
         'integer' => IntegerType::class,
         'text' => TextType::class,
         'percent' => OroPercentType::class,
-        'currency' => CurrencyType::class
+        'currency' => TextType::class
     ];
 
     /** @var FormFactory */

@@ -25,17 +25,17 @@ services:
           public: false
           calls:
               - [setNamespace, [ 'oro_report' ] ]
-
-    oro_report.listener.navigation_listener:
-        class: Oro\Bundle\ReportBundle\EventListener\NavigationListener
-        arguments:
-            - '@oro_entity.doctrine_helper'
-            - '@oro_entity_config.provider.entity'
-            - '@oro_security.token_accessor'
-            - '@oro_security.acl_helper'
-            - '@oro_featuretoggle.checker.feature_checker'
-        tags:
-            - { name: kernel.event_listener, event: oro_menu.configure.application_menu, method: onNavigationConfigure }
+#
+#    oro_report.listener.navigation_listener:
+#        class: Oro\Bundle\ReportBundle\EventListener\NavigationListener
+#        arguments:
+#            - '@oro_entity.doctrine_helper'
+#            - '@oro_entity_config.provider.entity'
+#            - '@oro_security.token_accessor'
+#            - '@oro_security.acl_helper'
+#            - '@oro_featuretoggle.checker.feature_checker'
+#        tags:
+#            - { name: kernel.event_listener, event: oro_menu.configure.application_menu, method: onNavigationConfigure }
 
     oro_report.listener.report_cache_cleaner_listener:
         class: Oro\Bundle\ReportBundle\EventListener\ReportCacheCleanerListener

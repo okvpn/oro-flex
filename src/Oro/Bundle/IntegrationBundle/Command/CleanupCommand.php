@@ -11,6 +11,7 @@ use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 use Oro\Bundle\BatchBundle\ORM\Query\BufferedIdentityQueryResultIterator;
 use Oro\Bundle\CronBundle\Command\CronCommandInterface;
+use Oro\Bundle\CronBundle\Model\ActiveAwareCronInterface;
 use Oro\Bundle\EntityBundle\ORM\NativeQueryExecutorHelper;
 use Oro\Bundle\IntegrationBundle\Entity\Status;
 use Symfony\Component\Console\Command\Command;
@@ -21,7 +22,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 /**
  * Deletes old integration status records.
  */
-class CleanupCommand extends Command implements CronCommandInterface
+class CleanupCommand extends Command implements CronCommandInterface, ActiveAwareCronInterface
 {
     public const BATCH_SIZE = 100;
     public const FAILED_STATUSES_INTERVAL = '1 month';
@@ -41,12 +42,12 @@ class CleanupCommand extends Command implements CronCommandInterface
         $this->nativeQueryExecutorHelper = $nativeQueryExecutorHelper;
     }
 
-    public function getDefaultDefinition()
+    public static function getDefaultDefinition(): ?string
     {
         return '0 1 * * *';
     }
 
-    public function isActive()
+    public function isActive(): bool
     {
         $completedInterval = new \DateTime('now', new \DateTimeZone('UTC'));
         $completedInterval->sub(\DateInterval::createFromDateString(self::DEFAULT_COMPLETED_STATUSES_INTERVAL));

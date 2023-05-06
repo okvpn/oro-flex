@@ -347,11 +347,7 @@ class OroEntityConfigBundleInstaller implements Installation, AttachmentExtensio
             $schema,
             'oro_attribute_family',
             'image',
-            [
-                'attachment' => [
-                    'acl_protected' => false,
-                ]
-            ],
+            [],
             self::MAX_IMAGE_SIZE_IN_MB,
             self::THUMBNAIL_WIDTH_SIZE_IN_PX,
             self::THUMBNAIL_HEIGHT_SIZE_IN_PX

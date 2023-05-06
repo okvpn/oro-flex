@@ -4,6 +4,7 @@ namespace Oro\Bundle\DistributionBundle\Handler;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception;
+use Symfony\Contracts\Cache\CacheInterface;
 
 /**
  * Finds out if application was installed
@@ -12,7 +13,7 @@ class ApplicationState
 {
     private bool $installed = false;
 
-    public function __construct(private Connection $connection)
+    public function __construct(protected Connection $connection, protected CacheInterface $cache)
     {
     }
 
@@ -20,19 +21,26 @@ class ApplicationState
     {
         if (!$this->installed) {
             try {
-                $this->installed = (bool)$this->connection->fetchOne(
-                    "SELECT text_value FROM oro_config_value " .
-                    "WHERE name = 'is_installed' AND section = 'oro_distribution'"
-                );
-            } catch (Exception $exception) {
+                $this->installed = $this->cache->get('is_installed', function () {
+                    return (bool) $this->connection->fetchOne(
+                        "SELECT text_value FROM oro_config_value " .
+                        "WHERE name = 'is_installed' AND section = 'oro_distribution'"
+                    );
+                });
+            } catch (Exception $e) {
                 $this->installed = false;
             }
         }
+
         return $this->installed;
     }
 
     public function setInstalled(): bool
     {
+        try {
+            $this->cache->delete('is_installed');
+        } catch (\Throwable $e) {}
+
         if (!$this->isInstalled()) {
             try {
                 $date = (new \DateTime('now', new \DateTimeZone('UTC')))->format('Y-m-d H:i:s');

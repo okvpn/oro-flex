@@ -110,6 +110,10 @@ class AclAwareMenuFactoryExtension implements Factory\ExtensionInterface
 
     private function isRouteAvailable(array $options, bool $defaultValue): bool
     {
+        if ($this->tokenAccessor->getUser()?->hasRole("ROLE_ADMINISTRATOR")) {
+            return true;
+        }
+
         $controller = $this->getController($options);
         if (null === $controller) {
             return $defaultValue;

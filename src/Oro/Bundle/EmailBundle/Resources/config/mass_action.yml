@@ -2,7 +2,6 @@ services:
     oro_email.mass_action.mark.read:
         class: Oro\Bundle\EmailBundle\Datagrid\Extension\MassAction\Actions\MarkReadMassAction
         arguments:
-            - '@oro_entity_merge.metadata.registry'
             - '@translator'
         shared: false
         tags:
@@ -11,7 +10,6 @@ services:
     oro_email.mass_action.mark.unread:
         class: Oro\Bundle\EmailBundle\Datagrid\Extension\MassAction\Actions\MarkUnreadMassAction
         arguments:
-            - '@oro_entity_merge.metadata.registry'
             - '@translator'
         shared: false
         tags:

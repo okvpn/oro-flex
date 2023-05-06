@@ -24,7 +24,7 @@ class UserApi implements UserApiKeyInterface
     /**
      * @var User
      *
-     * @ORM\ManyToOne(targetEntity="Oro\Bundle\UserBundle\Entity\User", inversedBy="apiKeys", fetch="LAZY")
+     * @ORM\ManyToOne(targetEntity="Oro\Bundle\UserBundle\Entity\User", inversedBy="apiKeys", fetch="EAGER")
      * @ORM\JoinColumn(name="user_id", referencedColumnName="id", onDelete="CASCADE", nullable=false)
      */
     protected $user;
@@ -43,6 +43,20 @@ class UserApi implements UserApiKeyInterface
      * @ORM\JoinColumn(name="organization_id", referencedColumnName="id", onDelete="SET NULL")
      */
     protected $organization;
+
+    /**
+     * @var array|null
+     *
+     * @ORM\Column(name="allowed_routes", type="json", nullable=true)
+     */
+    protected $allowedRoutes;
+
+    /**
+     * @var array|null
+     *
+     * @ORM\Column(name="allowed_routes_regex", type="json", nullable=true)
+     */
+    protected $allowedRoutesRegex;
 
     /**
      * Gets unique identifier of this entity.
@@ -144,6 +158,50 @@ class UserApi implements UserApiKeyInterface
     public function getOrganization()
     {
         return $this->organization;
+    }
+
+    /**
+     * @return array|null
+     */
+    public function getAllowedRoutes(): ?array
+    {
+        return $this->allowedRoutes;
+    }
+
+    public function setAllowedRoutes(?array $allowedRoutes)
+    {
+        $this->allowedRoutes = $allowedRoutes;
+        return $this;
+    }
+
+    /**
+     * @return array|null
+     */
+    public function getAllowedRoutesRegex(): ?array
+    {
+        return $this->allowedRoutesRegex;
+    }
+
+    public function setAllowedRoutesRegex(?array $allowedRoutesRegex)
+    {
+        $this->allowedRoutesRegex = $allowedRoutesRegex;
+        return $this;
+    }
+
+    public function hasRouteRestriction(): bool
+    {
+        return !empty($this->allowedRoutes) || !empty($this->allowedRoutesRegex);
+    }
+
+    public function isRouteMatch(string $route): bool
+    {
+        foreach ($this->allowedRoutesRegex ?? [] as $regex) {
+            if (preg_match($regex, $route)) {
+                return true;
+            }
+        }
+
+        return in_array($route, $this->allowedRoutes ?: [], true);
     }
 
     /**

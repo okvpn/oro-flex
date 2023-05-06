@@ -324,6 +324,9 @@ class Indexer
      */
     protected function filterAllowedEntities($attribute, $entities)
     {
+        return $entities;
+        // TODO: SKIP for performance.
+
         foreach (array_keys($entities) as $entityClass) {
             $objectString = 'Entity:' . $entityClass;
 

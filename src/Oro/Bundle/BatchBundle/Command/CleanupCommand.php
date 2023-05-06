@@ -38,7 +38,7 @@ class CleanupCommand extends Command implements CronCommandInterface
         parent::__construct();
     }
 
-    public function getDefaultDefinition()
+    public static function getDefaultDefinition(): ?string
     {
         return '0 1 * * *';
     }
@@ -46,7 +46,7 @@ class CleanupCommand extends Command implements CronCommandInterface
     /**
      * @return bool
      */
-    public function isActive()
+    public function isActive(): bool
     {
         $date = new \DateTime('now', new \DateTimeZone('UTC'));
         $date->sub(\DateInterval::createFromDateString($this->batchCleanupInterval));

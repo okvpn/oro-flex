@@ -204,7 +204,7 @@ class RestrictionManager
     {
         if (null === $this->restrictionRepository) {
             $this->restrictionRepository = $this->doctrineHelper
-                ->getEntityRepositoryForClass('OroWorkflowBundle:WorkflowRestriction');
+                ->getEntityRepositoryForClass(WorkflowRestriction::class);
         }
 
         return $this->restrictionRepository;

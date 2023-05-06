@@ -85,10 +85,6 @@ class DoctrineTagEventListener implements OptionalListenerInterface, ServiceSubs
      */
     public function markSkipped(string $className): void
     {
-        if (!class_exists($className)) {
-            throw new \InvalidArgumentException(sprintf('The class "%s" does not exist.', $className));
-        }
-
         $this->skipTrackingFor[$className] = true;
     }
 

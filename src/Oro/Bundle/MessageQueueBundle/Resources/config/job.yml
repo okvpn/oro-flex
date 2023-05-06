@@ -28,6 +28,9 @@ services:
         calls:
             - ['setJobConfigurationProvider', ['@oro_message_queue.job.configuration_provider']]
 
+    Oro\Component\MessageQueue\Job\JobRunner:
+        alias: oro_message_queue.job.runner
+
     oro_message_queue.job.runner:
         class: 'Oro\Component\MessageQueue\Job\JobRunner'
         public: false

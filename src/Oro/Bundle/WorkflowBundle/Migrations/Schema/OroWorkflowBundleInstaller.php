@@ -581,7 +581,6 @@ class OroWorkflowBundleInstaller implements Installation, ExtendExtensionAwareIn
                 ],
                 'form' => ['is_enabled' => false],
                 'view' => ['is_displayable' => false],
-                'merge' => ['display' => false],
                 'dataaudit' => ['auditable' => false]
             ]
         );
@@ -606,7 +605,6 @@ class OroWorkflowBundleInstaller implements Installation, ExtendExtensionAwareIn
                     ],
                     'form' => ['is_enabled' => false],
                     'view' => ['is_displayable' => false],
-                    'merge' => ['display' => false],
                     'dataaudit' => ['auditable' => false]
                 ],
             ]

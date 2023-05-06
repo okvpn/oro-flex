@@ -44,14 +44,9 @@ class CleanupAsyncOperationsCommand extends Command implements CronCommandInterf
         parent::__construct();
     }
 
-    public function getDefaultDefinition()
+    public static function getDefaultDefinition(): ?string
     {
         return '0 1 * * *';
-    }
-
-    public function isActive()
-    {
-        return true;
     }
 
     public function setOperationTimeout(int $operationTimeout): void

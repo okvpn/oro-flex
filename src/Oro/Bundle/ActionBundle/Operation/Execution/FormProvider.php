@@ -24,6 +24,8 @@ class FormProvider
     /** @var string */
     protected $formTypeClass;
 
+    protected $usedTokens = [];
+
     public function __construct(FormFactoryInterface $formFactory, string $formTypeClass)
     {
         $this->formFactory = $formFactory;
@@ -54,11 +56,14 @@ class FormProvider
      */
     public function createTokenData(Operation $operation, ActionData $actionData): array
     {
-        $options  = ['csrf_token_id'   => $operation->getName()];
-        $form = $this->formFactory->create($this->formTypeClass, $operation, $options);
-        $formView = $form->createView();
-        $token    = $formView->children[self::CSRF_TOKEN_FIELD];
+        if (!isset($this->usedTokens[$opName = $operation->getName()])) {
+            $options  = ['csrf_token_id'   => $opName];
+            $form = $this->formFactory->create($this->formTypeClass, $operation, $options);
+            $formView = $form->createView();
+            $token    = $formView->children[self::CSRF_TOKEN_FIELD];
+            $this->usedTokens[$opName] = $token->vars['value'];
+        }
 
-        return [OperationExecutionType::NAME => [self::CSRF_TOKEN_FIELD => $token->vars['value']]];
+        return [OperationExecutionType::NAME => [self::CSRF_TOKEN_FIELD => $this->usedTokens[$opName]]];
     }
 }

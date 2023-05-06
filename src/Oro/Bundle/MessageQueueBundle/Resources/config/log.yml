@@ -50,7 +50,7 @@ services:
             - { name: monolog.processor }
 
     oro_message_queue.log.handler.console:
-        class: Oro\Bundle\MessageQueueBundle\Log\Handler\ConsoleHandler
+        class: Oro\Bundle\MessageQueueBundle\Log\Handler\PreFilterHandler
         arguments:
             - '@oro_message_queue.log.consumer_state'
         tags:

@@ -8,6 +8,7 @@ services:
     oro_entity_config.configuration_handler:
         class: Oro\Bundle\EntityConfigBundle\EntityConfig\ConfigurationHandler
         public: true
+        lazy: true
         arguments:
             - !tagged_iterator oro_entity_config.validation.entity_config
 
@@ -21,6 +22,7 @@ services:
     oro_entity_config.config_manager:
         class: Oro\Bundle\EntityConfigBundle\Config\ConfigManager
         public: true
+        lazy: true
         arguments:
             - '@event_dispatcher'
             - '@oro_entity_config.metadata.annotation_metadata_factory'
@@ -457,7 +459,6 @@ services:
         arguments:
             - '@oro_message_queue.message_producer'
             - '@oro_entity_config.provider.deleted_attribute'
-            - '@Doctrine\Inflector\Inflector'
         calls:
             - [setTopic, [!php/const Oro\Bundle\EntityConfigBundle\Async\Topic\AttributeRemovedFromFamilyTopic::NAME]]
         tags:

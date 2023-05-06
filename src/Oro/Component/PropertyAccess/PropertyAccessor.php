@@ -31,17 +31,6 @@ class PropertyAccessor implements PropertyAccessorInterface
 {
     const VALUE = 0;
     const IS_REF = 1;
-    const ACCESS_HAS_PROPERTY = 0;
-    const ACCESS_TYPE = 1;
-    const ACCESS_NAME = 2;
-    const ACCESS_REF = 3;
-    const ACCESS_ADDER = 4;
-    const ACCESS_REMOVER = 5;
-    const ACCESS_TYPE_METHOD = 0;
-    const ACCESS_TYPE_PROPERTY = 1;
-    const ACCESS_TYPE_MAGIC = 2;
-    const ACCESS_TYPE_ADDER_AND_REMOVER = 3;
-    const ACCESS_TYPE_NOT_FOUND = 4;
 
     /** @var bool */
     protected $magicCall;
@@ -52,13 +41,7 @@ class PropertyAccessor implements PropertyAccessorInterface
     /** @var PropertyPathInterface[] */
     protected $propertyPathCache = [];
 
-    /** @var array */
-    protected $readPropertyCache = [];
-
-    /** @var array */
-    protected $writePropertyCache = [];
-
-    private EnglishInflector $symfonyInflector;
+    private EnglishInflector $inflector;
 
     /**
      * @param bool $magicCall            Determines whether the use of "__call" is enabled
@@ -71,9 +54,9 @@ class PropertyAccessor implements PropertyAccessorInterface
      */
     public function __construct($magicCall = false, $ignoreInvalidIndices = false)
     {
-        $this->magicCall = $magicCall;
+        $this->magicCall            = $magicCall;
         $this->ignoreInvalidIndices = $ignoreInvalidIndices;
-        $this->symfonyInflector = new EnglishInflector();
+        $this->inflector = new EnglishInflector();
     }
 
     /**
@@ -351,7 +334,6 @@ class PropertyAccessor implements PropertyAccessorInterface
      *
      * @throws Exception\NoSuchPropertyException If a value within the path is neither object nor array.
      *                                           If a non-existing index is accessed.
-     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      */
     private function &readPropertiesUntil(
         &$object,
@@ -450,32 +432,74 @@ class PropertyAccessor implements PropertyAccessorInterface
                 );
             }
         } elseif (is_object($object)) {
-            $access = $this->getReadAccessInfo(get_class($object), $property);
-
-            if (self::ACCESS_TYPE_METHOD === $access[self::ACCESS_TYPE]) {
-                $result[self::VALUE] = $object->{$access[self::ACCESS_NAME]}();
-            } elseif (self::ACCESS_TYPE_PROPERTY === $access[self::ACCESS_TYPE]) {
-                $result[self::VALUE] = $object->{$access[self::ACCESS_NAME]};
-
-                if ($access[self::ACCESS_REF] && isset($zval[self::IS_REF])) {
-                    $result[self::IS_REF] = &$object->{$access[self::ACCESS_NAME]};
+            $reflClass = new \ReflectionClass($object);
+            $camelized = $this->camelize($property);
+            if ($reflClass->hasMethod($getter = 'get' . $camelized)
+                && $reflClass->getMethod($getter)->isPublic()
+            ) {
+                $result[self::VALUE] = $object->$getter();
+            } elseif ($reflClass->hasMethod($isser = 'is' . $camelized)
+                && $reflClass->getMethod($isser)->isPublic()
+            ) {
+                $result[self::VALUE] = $object->$isser();
+            } elseif ($reflClass->hasMethod($hasser = 'has' . $camelized)
+                && $reflClass->getMethod($hasser)->isPublic()
+            ) {
+                $result[self::VALUE] = $object->$hasser();
+            } elseif ($reflClass->hasMethod($getsetter = lcfirst($camelized))
+                && $reflClass->getMethod($getsetter)->isPublic()
+            ) {
+                // jQuery style, e.g. read: last(), write: last($item)
+                $result[self::VALUE] = $object->$getsetter();
+            } elseif ($reflClass->hasMethod('__get') && $reflClass->getMethod('__get')->isPublic()) {
+                if ($reflClass->hasMethod('__isset') && $reflClass->getMethod('__isset')->isPublic()) {
+                    if (!isset($object->$property)) {
+                        throw new Exception\NoSuchPropertyException(
+                            sprintf(
+                                'The property "%s" cannot be got by "__get" method ' .
+                                'because "__isset" method returns false. Class "%s".',
+                                $property,
+                                $reflClass->name
+                            )
+                        );
+                    }
                 }
-            } elseif (!$access[self::ACCESS_HAS_PROPERTY] && property_exists($object, $property)) {
-                // Needed to support \stdClass instances. We need to explicitly
-                // exclude $access[self::ACCESS_HAS_PROPERTY], otherwise if
-                // a *protected* property was found on the class, property_exists()
-                // returns true, consequently the following line will result in a
-                // fatal error.
-
                 $result[self::VALUE] = $object->$property;
-                if (isset($zval[self::IS_REF])) {
-                    $result[self::IS_REF] = &$object->$property;
-                }
-            } elseif (self::ACCESS_TYPE_MAGIC === $access[self::ACCESS_TYPE]) {
-                // we call the getter and hope the __call do the job
-                $result[self::VALUE] = $object->{$access[self::ACCESS_NAME]}();
             } else {
-                throw new Exception\NoSuchPropertyException($access[self::ACCESS_NAME]);
+                $hasProp = $reflClass->hasProperty($property);
+                if ($hasProp && $reflClass->getProperty($property)->isPublic()) {
+                    $result[self::VALUE]  = &$object->$property;
+                    $result[self::IS_REF] = true;
+                } elseif (!$hasProp && property_exists($object, $property)) {
+                    // Needed to support \stdClass instances. We need to explicitly
+                    // exclude $hasProp, otherwise if in the previous clause
+                    // a *protected* property was found on the class, property_exists()
+                    // returns true, consequently the following line will result in a
+                    // fatal error.
+                    $result[self::VALUE]  = &$object->$property;
+                    $result[self::IS_REF] = true;
+                } elseif ($this->magicCall
+                    && $reflClass->hasMethod('__call')
+                    && $reflClass->getMethod('__call')->isPublic()
+                ) {
+                    // we call the getter and hope the __call do the job
+                    $result[self::VALUE] = $object->$getter();
+                } else {
+                    $methods = [$getter, $getsetter, $isser, $hasser, '__get'];
+                    if ($this->magicCall) {
+                        $methods[] = '__call';
+                    }
+
+                    throw new Exception\NoSuchPropertyException(
+                        sprintf(
+                            'Neither the property "%s" nor one of the methods "%s()" ' .
+                            'exist and have public access in class "%s".',
+                            $property,
+                            implode('()", "', $methods),
+                            $reflClass->name
+                        )
+                    );
+                }
             }
         } else {
             if ($propertyPath !== null && $propertyPathIndex !== null) {
@@ -522,32 +546,63 @@ class PropertyAccessor implements PropertyAccessorInterface
         if ($object instanceof \ArrayAccess || is_array($object)) {
             $object[$property] = $value;
         } elseif (is_object($object)) {
-            $access = $this->getWriteAccessInfo(get_class($object), $property, $value);
+            $reflClass = new \ReflectionClass($object);
+            $camelized = $this->camelize($property);
+            $singulars = $this->inflector->singularize($camelized);
 
-            if (self::ACCESS_TYPE_METHOD === $access[self::ACCESS_TYPE]) {
-                $object->{$access[self::ACCESS_NAME]}($value);
-            } elseif (self::ACCESS_TYPE_PROPERTY === $access[self::ACCESS_TYPE]) {
-                $object->{$access[self::ACCESS_NAME]} = $value;
-            } elseif (self::ACCESS_TYPE_ADDER_AND_REMOVER === $access[self::ACCESS_TYPE]) {
-                $this->checkValueIsCollectionByMethods(
-                    $object,
-                    $property,
-                    $value,
-                    $access[self::ACCESS_ADDER],
-                    $access[self::ACCESS_REMOVER]
-                );
-            } elseif (!$access[self::ACCESS_HAS_PROPERTY] && property_exists($object, $property)) {
+            if (is_array($value) || $value instanceof \Traversable) {
+                $methods = $this->findAdderAndRemover($reflClass, $singulars);
+
+                // Use addXxx() and removeXxx() to write the collection
+                if (null !== $methods) {
+                    $this->writeCollection($object, $property, $value, $methods[0], $methods[1]);
+
+                    return;
+                }
+            }
+
+            $setter           = 'set' . $camelized;
+            $getsetter        = lcfirst($camelized); // jQuery style, e.g. read: last(), write: last($item)
+            $classHasProperty = $reflClass->hasProperty($property);
+
+            if ($this->isMethodAccessible($reflClass, $setter, 1)) {
+                $object->$setter($value);
+            } elseif ($this->isMethodAccessible($reflClass, $getsetter, 1)) {
+                $object->$getsetter($value);
+            } elseif ($this->isMethodAccessible($reflClass, '__set', 2)) {
+                $object->$property = $value;
+            } elseif ($classHasProperty && $reflClass->getProperty($property)->isPublic()) {
+                $object->$property = $value;
+            } elseif (!$classHasProperty && property_exists($object, $property)) {
                 // Needed to support \stdClass instances. We need to explicitly
-                // exclude $access[self::ACCESS_HAS_PROPERTY], otherwise if
+                // exclude $classHasProperty, otherwise if in the previous clause
                 // a *protected* property was found on the class, property_exists()
                 // returns true, consequently the following line will result in a
                 // fatal error.
-
                 $object->$property = $value;
-            } elseif (self::ACCESS_TYPE_MAGIC === $access[self::ACCESS_TYPE]) {
-                $object->{$access[self::ACCESS_NAME]}($value);
+            } elseif ($this->magicCall && $this->isMethodAccessible($reflClass, '__call', 2)) {
+                // we call the getter and hope the __call do the job
+                $object->$setter($value);
             } else {
-                throw new Exception\NoSuchPropertyException($access[self::ACCESS_NAME]);
+                throw new Exception\NoSuchPropertyException(
+                    sprintf(
+                        'Neither the property "%s" nor one of the methods %s"%s()", "%s()", ' .
+                        '"__set()" or "__call()" exist and have public access in class "%s".',
+                        $property,
+                        implode(
+                            '',
+                            array_map(
+                                function ($singular) {
+                                    return '"add' . $singular . '()"/"remove' . $singular . '()", ';
+                                },
+                                $singulars
+                            )
+                        ),
+                        $setter,
+                        $getsetter,
+                        $reflClass->name
+                    )
+                );
             }
         } else {
             throw new Exception\NoSuchPropertyException(
@@ -560,66 +615,6 @@ class PropertyAccessor implements PropertyAccessorInterface
     }
 
     /**
-     * Checks if value is a collection and sets the value for the attribute
-     *
-     * @param array|object      $object   The object or array to write to
-     * @param mixed             $property The property or index to write
-     * @param mixed             $value    The value to write
-     * @param \ReflectionClass  $reflClass
-     * @param array             $singulars
-     * @return bool
-     */
-    protected function checkValueIsCollection($object, $property, $value, $reflClass, $singulars)
-    {
-        $methods = $this->findAdderAndRemover($reflClass, $singulars);
-        // Use addXxx() and removeXxx() to write the collection
-        if (null !== $methods) {
-            return $this->checkValueIsCollectionByMethods($object, $property, $value, $methods[0], $methods[1]);
-        }
-
-        return false;
-    }
-
-    /**
-     * Checks if value is a collection and sets the value for the attribute with already defined methods
-     *
-     * @param array|object $object The object or array to write to
-     * @param mixed $property The property or index to write
-     * @param mixed $value The value to write
-     * @param string $addMethod The add*() method
-     * @param string $removeMethod The remove*() method
-     * @return bool
-     */
-    protected function checkValueIsCollectionByMethods($object, $property, $value, $addMethod, $removeMethod)
-    {
-        $shouldRemoveItems = true;
-
-        try {
-            $objectValue = $this->getValue($object, $property);
-        } catch (Exception\NoSuchPropertyException $ex) {
-            //property was not set so we cannot get a value that wasn't set already
-            $objectValue = null;
-        }
-        //if the value we want to add is not an array and we try to add it to a collection,
-        // then we don't want to overwrite the old values, instead add the new value to the collection
-        if ((!is_array($value) && !$value instanceof \Traversable)
-            && ($objectValue instanceof \ArrayAccess || is_array($objectValue))
-        ) {
-            //we try to add a value to a collection and we don't want to remove old items
-            $value = [$value];
-            $shouldRemoveItems = false;
-        }
-
-        if (is_array($value) || $value instanceof \Traversable) {
-            $this->writeCollection($object, $property, $value, $addMethod, $removeMethod, $shouldRemoveItems);
-
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
      * Adjusts a collection-valued property by calling add*() and remove*() methods.
      *
      * @param object             $object       The object to write to
@@ -627,17 +622,9 @@ class PropertyAccessor implements PropertyAccessorInterface
      * @param array|\Traversable $collection   The collection to write
      * @param string             $addMethod    The add*() method
      * @param string             $removeMethod The remove*() method
-     * @param boolean            $shouldRemoveItems Flag that tells if we want to remove existing items
-     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      */
-    protected function writeCollection(
-        $object,
-        $property,
-        $collection,
-        $addMethod,
-        $removeMethod,
-        $shouldRemoveItems = true
-    ) {
+    protected function writeCollection($object, $property, $collection, $addMethod, $removeMethod)
+    {
         // At this point the add and remove methods have been found
         // Use iterator_to_array() instead of clone in order to prevent side effects
         // see https://github.com/symfony/symfony/issues/4670
@@ -646,8 +633,7 @@ class PropertyAccessor implements PropertyAccessorInterface
         $propertyValue = $this->readValue($object, $property, false);
         $previousValue = $propertyValue[self::VALUE];
 
-        if (is_array($previousValue)
-            || $previousValue instanceof \Traversable) {
+        if (is_array($previousValue) || $previousValue instanceof \Traversable) {
             foreach ($previousValue as $previousItem) {
                 foreach ($collection as $key => $item) {
                     if ($item === $previousItem) {
@@ -659,10 +645,8 @@ class PropertyAccessor implements PropertyAccessorInterface
                     }
                 }
 
-                if (true === $shouldRemoveItems) {
-                    // Item not found, add to remove list
-                    $itemToRemove[] = $previousItem;
-                }
+                // Item not found, add to remove list
+                $itemToRemove[] = $previousItem;
             }
         }
 
@@ -689,13 +673,30 @@ class PropertyAccessor implements PropertyAccessorInterface
             return false;
         }
 
-        $access = $this->getWriteAccessInfo(get_class($object), $property, []);
+        $reflClass = new \ReflectionClass($object);
 
-        return self::ACCESS_TYPE_METHOD === $access[self::ACCESS_TYPE]
-            || self::ACCESS_TYPE_PROPERTY === $access[self::ACCESS_TYPE]
-            || self::ACCESS_TYPE_ADDER_AND_REMOVER === $access[self::ACCESS_TYPE]
-            || (!$access[self::ACCESS_HAS_PROPERTY] && property_exists($object, $property))
-            || self::ACCESS_TYPE_MAGIC === $access[self::ACCESS_TYPE];
+        $camelized = $this->camelize($property);
+        $setter = 'set' . $camelized;
+        $getsetter = lcfirst($camelized); // jQuery style, e.g. read: last(), write: last($item)
+        $classHasProperty = $reflClass->hasProperty($property);
+
+        if ($this->isMethodAccessible($reflClass, $setter, 1)
+            || $this->isMethodAccessible($reflClass, $getsetter, 1)
+            || $this->isMethodAccessible($reflClass, '__set', 2)
+            || ($classHasProperty && $reflClass->getProperty($property)->isPublic())
+            || (!$classHasProperty && property_exists($object, $property))
+            || ($this->magicCall && $this->isMethodAccessible($reflClass, '__call', 2))) {
+            return true;
+        }
+
+        $singulars = $this->inflector->singularize($camelized);
+
+        // Any of the two methods is required, but not yet known
+        if (null !== $this->findAdderAndRemover($reflClass, $singulars)) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -795,10 +796,11 @@ class PropertyAccessor implements PropertyAccessorInterface
      */
     protected function isMethodAccessible(\ReflectionClass $class, $methodName, $parameters)
     {
-        if ($this->hasPublicMethod($class, $methodName)) {
+        if ($class->hasMethod($methodName)) {
             $method = $class->getMethod($methodName);
 
-            if ($method->getNumberOfRequiredParameters() <= $parameters
+            if ($method->isPublic()
+                && $method->getNumberOfRequiredParameters() <= $parameters
                 && $method->getNumberOfParameters() >= $parameters
             ) {
                 return true;
@@ -813,7 +815,7 @@ class PropertyAccessor implements PropertyAccessorInterface
      *
      * @param string|PropertyPath $propertyPath
      *
-     * @return PropertyPath
+     * @return PropertyPathInterface
      */
     protected function getPropertyPath($propertyPath)
     {
@@ -827,170 +829,5 @@ class PropertyAccessor implements PropertyAccessorInterface
         $propertyPathInstance = new PropertyPath($propertyPath);
 
         return $this->propertyPathCache[$propertyPath] = $propertyPathInstance;
-    }
-
-    /**
-     * Guesses how to read the property value.
-     *
-     * @param string $class
-     * @param string $property
-     *
-     * @return array
-     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
-     */
-    private function getReadAccessInfo($class, $property)
-    {
-        $key = $class.'::'.$property;
-
-        if (isset($this->readPropertyCache[$key])) {
-            $access = $this->readPropertyCache[$key];
-        } else {
-            $access = [];
-
-            $reflClass = new \ReflectionClass($class);
-            $access[self::ACCESS_HAS_PROPERTY] = $reflClass->hasProperty($property);
-            $camelProp = $this->camelize($property);
-            $getter = 'get'.$camelProp;
-            $getsetter = lcfirst($camelProp); // jQuery style, e.g. read: last(), write: last($item)
-            $isser = 'is'.$camelProp;
-            $hasser = 'has'.$camelProp;
-
-            if ($this->hasPublicMethod($reflClass, $getter)) {
-                $access[self::ACCESS_TYPE] = self::ACCESS_TYPE_METHOD;
-                $access[self::ACCESS_NAME] = $getter;
-            } elseif ($this->hasPublicMethod($reflClass, $getsetter)) {
-                $access[self::ACCESS_TYPE] = self::ACCESS_TYPE_METHOD;
-                $access[self::ACCESS_NAME] = $getsetter;
-            } elseif ($this->hasPublicMethod($reflClass, $isser)) {
-                $access[self::ACCESS_TYPE] = self::ACCESS_TYPE_METHOD;
-                $access[self::ACCESS_NAME] = $isser;
-            } elseif ($this->hasPublicMethod($reflClass, $hasser)) {
-                $access[self::ACCESS_TYPE] = self::ACCESS_TYPE_METHOD;
-                $access[self::ACCESS_NAME] = $hasser;
-            } elseif ($this->hasPublicMethod($reflClass, '__get')) {
-                $access[self::ACCESS_TYPE] = self::ACCESS_TYPE_PROPERTY;
-                $access[self::ACCESS_NAME] = $property;
-                $access[self::ACCESS_REF] = false;
-            } elseif ($access[self::ACCESS_HAS_PROPERTY] && $reflClass->getProperty($property)->isPublic()) {
-                $access[self::ACCESS_TYPE] = self::ACCESS_TYPE_PROPERTY;
-                $access[self::ACCESS_NAME] = $property;
-                $access[self::ACCESS_REF] = true;
-            } elseif ($this->magicCall
-                && $this->hasPublicMethod($reflClass, '__call')
-            ) {
-                // we call the getter and hope the __call do the job
-                $access[self::ACCESS_TYPE] = self::ACCESS_TYPE_MAGIC;
-                $access[self::ACCESS_NAME] = $getter;
-            } else {
-                $methods = [$getter, $getsetter, $isser, $hasser, '__get'];
-                if ($this->magicCall) {
-                    $methods[] = '__call';
-                }
-
-                $access[self::ACCESS_TYPE] = self::ACCESS_TYPE_NOT_FOUND;
-                $access[self::ACCESS_NAME] = sprintf(
-                    'Neither the property "%s" nor one of the methods "%s()" '.
-                    'exist and have public access in class "%s".',
-                    $property,
-                    implode('()", "', $methods),
-                    $reflClass->name
-                );
-            }
-
-            $this->readPropertyCache[$key] = $access;
-        }
-
-        return $access;
-    }
-
-    /**
-     * Guesses how to write the property value.
-     *
-     * @param string $class
-     * @param string $property
-     * @param mixed  $value
-     *
-     * @return array
-     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
-     */
-    private function getWriteAccessInfo($class, $property, $value)
-    {
-        $key = $class.'::'.$property;
-
-        if (isset($this->writePropertyCache[$key])) {
-            $access = $this->writePropertyCache[$key];
-        } else {
-            $access = [];
-
-            $reflClass = new \ReflectionClass($class);
-            $access[self::ACCESS_HAS_PROPERTY] = $reflClass->hasProperty($property);
-            $camelized = $this->camelize($property);
-            $singulars = (array)$this->symfonyInflector->singularize($camelized);
-
-            if (is_array($value) || $value instanceof \Traversable) {
-                $methods = $this->findAdderAndRemover($reflClass, $singulars);
-
-                if (null !== $methods) {
-                    $access[self::ACCESS_TYPE] = self::ACCESS_TYPE_ADDER_AND_REMOVER;
-                    $access[self::ACCESS_ADDER] = $methods[0];
-                    $access[self::ACCESS_REMOVER] = $methods[1];
-                }
-            }
-
-            if (!isset($access[self::ACCESS_TYPE])) {
-                $setter = 'set'.$camelized;
-                $getsetter = lcfirst($camelized); // jQuery style, e.g. read: last(), write: last($item)
-
-                if (null !== $methods = $this->findAdderAndRemover($reflClass, $singulars)) {
-                    $access[self::ACCESS_TYPE] = self::ACCESS_TYPE_ADDER_AND_REMOVER;
-                    $access[self::ACCESS_ADDER] = $methods[0];
-                    $access[self::ACCESS_REMOVER] = $methods[1];
-                } elseif ($this->isMethodAccessible($reflClass, $setter, 1)) {
-                    $access[self::ACCESS_TYPE] = self::ACCESS_TYPE_METHOD;
-                    $access[self::ACCESS_NAME] = $setter;
-                } elseif ($this->isMethodAccessible($reflClass, $getsetter, 1)) {
-                    $access[self::ACCESS_TYPE] = self::ACCESS_TYPE_METHOD;
-                    $access[self::ACCESS_NAME] = $getsetter;
-                } elseif ($this->isMethodAccessible($reflClass, '__set', 2)) {
-                    $access[self::ACCESS_TYPE] = self::ACCESS_TYPE_PROPERTY;
-                    $access[self::ACCESS_NAME] = $property;
-                } elseif ($access[self::ACCESS_HAS_PROPERTY] && $reflClass->getProperty($property)->isPublic()) {
-                    $access[self::ACCESS_TYPE] = self::ACCESS_TYPE_PROPERTY;
-                    $access[self::ACCESS_NAME] = $property;
-                } elseif ($this->magicCall && $this->isMethodAccessible($reflClass, '__call', 2)) {
-                    // we call the getter and hope the __call do the job
-                    $access[self::ACCESS_TYPE] = self::ACCESS_TYPE_MAGIC;
-                    $access[self::ACCESS_NAME] = $setter;
-                } else {
-                    $access[self::ACCESS_TYPE] = self::ACCESS_TYPE_NOT_FOUND;
-                    $access[self::ACCESS_NAME] = sprintf(
-                        'Neither the property "%s" nor one of the methods %s"%s()", "%s()", '.
-                        '"__set()" or "__call()" exist and have public access in class "%s".',
-                        $property,
-                        implode('', array_map(function ($singular) {
-                            return '"add'.$singular.'()"/"remove'.$singular.'()", ';
-                        }, $singulars)),
-                        $setter,
-                        $getsetter,
-                        $reflClass->name
-                    );
-                }
-            }
-
-            $this->writePropertyCache[$key] = $access;
-        }
-
-        return $access;
-    }
-
-    /**
-     * @param \ReflectionClass $class
-     * @param string $methodName
-     *
-     * @return bool
-     */
-    private function hasPublicMethod(\ReflectionClass $class, $methodName)
-    {
-        return $class->hasMethod($methodName) && $class->getMethod($methodName)->isPublic();
     }
 }

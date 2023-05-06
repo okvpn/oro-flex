@@ -1,0 +1,79 @@
+<?php
+
+namespace Oro\Bundle\ApiBundle\Routing;
+
+use Symfony\Component\Routing\RouteCollection;
+
+/**
+ * Restful route collection.
+ */
+class RestRouteCollection extends RouteCollection
+{
+    private $singularName;
+
+    /**
+     * Sets collection singular name.
+     *
+     * @param string $name Singular name
+     */
+    public function setSingularName($name)
+    {
+        $this->singularName = $name;
+    }
+
+    /**
+     * Returns collection singular name.
+     *
+     * @return string
+     */
+    public function getSingularName()
+    {
+        return $this->singularName;
+    }
+
+    /**
+     * Adds controller prefix to all collection routes.
+     *
+     * @param string $prefix
+     */
+    public function prependRouteControllersWithPrefix($prefix)
+    {
+        foreach (parent::all() as $route) {
+            $route->setDefault('_controller', $prefix.$route->getDefault('_controller'));
+        }
+    }
+
+    /**
+     * Sets default format of routes.
+     *
+     * @param string $format
+     */
+    public function setDefaultFormat($format)
+    {
+        foreach (parent::all() as $route) {
+            // Set default format only if not set already (could be defined in annotation)
+            if (!$route->getDefault('_format')) {
+                $route->setDefault('_format', $format);
+            }
+        }
+    }
+
+    /**
+     * Returns routes sorted by custom HTTP methods first.
+     *
+     * @return array
+     */
+    public function all()
+    {
+        $routes = parent::all();
+        $customMethodRoutes = [];
+        foreach ($routes as $routeName => $route) {
+            if (!preg_match('/(_|^)(get|post|put|delete|patch|head|options)_/', $routeName)) {
+                $customMethodRoutes[$routeName] = $route;
+                unset($routes[$routeName]);
+            }
+        }
+
+        return $customMethodRoutes + $routes;
+    }
+}

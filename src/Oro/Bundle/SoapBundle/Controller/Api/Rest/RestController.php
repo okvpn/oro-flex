@@ -205,4 +205,14 @@ abstract class RestController extends RestGetController implements
     {
         return $this->get('oro_soap.handler.delete');
     }
+
+    public function getManager()
+    {
+        throw new \LogicException(get_called_class() . ' getManager is not implement');
+    }
+
+    public function getFormHandler()
+    {
+        throw new \LogicException(get_called_class() . ' getFormHandler is not implement');
+    }
 }

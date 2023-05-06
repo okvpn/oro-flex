@@ -114,10 +114,17 @@ class WsseAuthenticationProvider implements AuthenticationProviderInterface
                         $this->providerKey,
                         $user->getUserRoles()
                     );
-                    $authenticatedToken->setOrganization($validUserApi->getOrganization());
 
-                    if ($this->nonceCache instanceof PruneableInterface) {
-                        $this->nonceCache->prune();
+                    $authenticatedToken->setOrganization($validUserApi->getOrganization());
+                    $authenticatedToken->setAttribute('allowed_routes', $validUserApi->getAllowedRoutes());
+                    $authenticatedToken->setAttribute('allowed_routes_regex', $validUserApi->getAllowedRoutesRegex());
+
+                    // Reduce call prune
+                    if ($this->nonceCache instanceof PruneableInterface && random_int(0, 10) === 1) {
+                        try {
+                            $this->nonceCache->prune();
+                        } catch (\Throwable $e) {
+                        }
                     }
 
                     return $authenticatedToken;

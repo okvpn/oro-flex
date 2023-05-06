@@ -339,7 +339,6 @@ services:
         class: Oro\Bundle\NavigationBundle\Event\ResponseHashnavListener
         arguments:
             - '@security.token_storage'
-            - '@twig'
             - '%kernel.debug%'
         tags:
             - { name: kernel.event_listener, event: kernel.response, method: onResponse }
@@ -528,6 +527,7 @@ services:
 
     oro_navigation.provider.pinbar_tab_title:
         class: Oro\Bundle\NavigationBundle\Provider\PinbarTabTitleProvider
+        public: true
         arguments:
             - '@oro_entity.doctrine_helper'
             - '@oro_navigation.title_service'

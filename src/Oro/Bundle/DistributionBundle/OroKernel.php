@@ -9,6 +9,7 @@ use Oro\Bundle\EntityExtendBundle\Tools\ExtendReflectionErrorHandler;
 use Oro\Bundle\PlatformBundle\Profiler\ProfilerConfig;
 use Oro\Component\Config\CumulativeResourceManager;
 use Oro\Component\DependencyInjection\ExtendedContainerBuilder;
+use Oro\Component\DependencyInjection\PhpDumper;
 use Symfony\Bridge\ProxyManager\LazyProxy\Instantiator\RuntimeInstantiator;
 use Symfony\Bridge\ProxyManager\LazyProxy\PhpDumper\ProxyDumper;
 use Symfony\Component\ClassLoader\ClassCollectionLoader;
@@ -16,7 +17,6 @@ use Symfony\Component\Config\ConfigCache;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\Compiler\PassConfig;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\Dumper\PhpDumper;
 use Symfony\Component\ErrorHandler\DebugClassLoader;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpKernel\Kernel;
@@ -467,9 +467,21 @@ abstract class OroKernel extends Kernel
         try {
             $container = null;
             $container = $this->buildContainer();
+            try {
+                if (file_exists($cachePath) && \is_object($this->container = include $cachePath)
+                    && (!$this->debug || (self::$freshCache[$k = $cachePath.'.'.$this->environment] ?? self::$freshCache[$k] = $cache->isFresh()))
+                ) {
+                    $this->container->set('kernel', $this);
+                    error_reporting($errorLevel);
+
+                    return;
+                }
+            } catch (\Throwable $e) {
+            }
+
             $container->compile();
         } finally {
-            if ($collectDeprecations && $container?->getParameter('oro_platform.collect_deprecations')) {
+            if ($collectDeprecations && false) {
                 restore_error_handler();
 
                 file_put_contents($cacheDir.'/'.$class.'Deprecations.log', serialize(array_values($collectedLogs)));

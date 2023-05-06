@@ -31,15 +31,10 @@ class ClearNavigationHistoryCommand extends Command implements CronCommandInterf
         parent::__construct();
     }
 
-    public function getDefaultDefinition()
+    public static function getDefaultDefinition(): ?string
     {
         // 00:05 every day
         return '5 0 * * *';
-    }
-
-    public function isActive()
-    {
-        return true;
     }
 
     /** @noinspection PhpMissingParentCallCommonInspection */

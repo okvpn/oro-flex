@@ -22,6 +22,8 @@ class RepeatableFileProfilerStorage extends FileProfilerStorage
             return null;
         }
 
+        return parent::read($token);
+
         $file = $this->getFilename($token);
         $start = microtime(true);
 

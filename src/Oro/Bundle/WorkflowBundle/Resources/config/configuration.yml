@@ -110,6 +110,7 @@ services:
 
     oro_workflow.configuration.provider.workflow_config:
         class: Oro\Bundle\WorkflowBundle\Configuration\WorkflowConfigurationProvider
+        public: true
         arguments:
             - '@oro_workflow.configuration.config.workflow_list'
             - '@oro_workflow.configuration.workflow_config_finder.builder'

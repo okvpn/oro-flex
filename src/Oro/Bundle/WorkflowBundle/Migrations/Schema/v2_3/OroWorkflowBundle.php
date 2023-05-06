@@ -53,7 +53,6 @@ class OroWorkflowBundle implements Migration, ExtendExtensionAwareInterface
                 ],
                 'form' => ['is_enabled' => false],
                 'view' => ['is_displayable' => false],
-                'merge' => ['display' => false],
                 'dataaudit' => ['auditable' => false]
             ]
         );
@@ -78,7 +77,6 @@ class OroWorkflowBundle implements Migration, ExtendExtensionAwareInterface
                     ],
                     'form' => ['is_enabled' => false],
                     'view' => ['is_displayable' => false],
-                    'merge' => ['display' => false],
                     'dataaudit' => ['auditable' => false]
                 ],
             ]

@@ -4,13 +4,17 @@ namespace Oro\Bundle\SecurityBundle\Acl\Voter;
 
 use Oro\Bundle\EntityBundle\Exception\NotManageableEntityException;
 use Oro\Bundle\EntityBundle\ORM\DoctrineHelper;
+use Symfony\Component\Security\Acl\Model\ObjectIdentityInterface;
+use Symfony\Component\Security\Acl\Util\ClassUtils;
+use Symfony\Component\Security\Acl\Voter\FieldVote;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
+use Symfony\Component\Security\Core\Authorization\Voter\CacheableVoterInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\VoterInterface;
 
 /**
  * The base class for security voters that checks whether an access is granted for an entity object.
  */
-abstract class AbstractEntityVoter implements VoterInterface
+abstract class AbstractEntityVoter implements VoterInterface, CacheableVoterInterface
 {
     /** @var string[] */
     protected $supportedAttributes = [];
@@ -34,15 +38,21 @@ abstract class AbstractEntityVoter implements VoterInterface
     }
 
     /**
-     * Checks if the voter supports the given attribute.
-     *
-     * @param mixed $attribute An attribute (usually the attribute name string)
-     *
-     * @return bool true if this Voter supports the attribute, false otherwise
+     * {@inheritdoc}
      */
-    protected function supportsAttribute($attribute)
+    public function supportsAttribute(string $attribute): bool
     {
         return \in_array($attribute, $this->supportedAttributes, true);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function supportsType(string $subjectType): bool
+    {
+        $class = ClassUtils::getRealClass($subjectType);
+
+        return \in_array($class, [FieldVote::class, ObjectIdentityInterface::class, $this->className]);
     }
 
     /**

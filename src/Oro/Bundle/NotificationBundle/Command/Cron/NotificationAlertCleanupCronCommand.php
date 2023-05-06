@@ -38,17 +38,9 @@ class NotificationAlertCleanupCronCommand extends Command implements CronCommand
     /**
      * {@inheritDoc}
      */
-    public function getDefaultDefinition(): string
+    public static function getDefaultDefinition(): ?string
     {
-        return  '0 0 * * */0' ; // Every Sunday at 00:00
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function isActive(): bool
-    {
-        return true;
+        return  '0 0 * * *' ; // Every Sunday at 00:00
     }
 
     /**

@@ -5,6 +5,7 @@ namespace Oro\Bundle\EntityExtendBundle\Command;
 
 use Doctrine\Bundle\DoctrineBundle\Registry;
 use Doctrine\Common\Cache\ClearableCache;
+use Doctrine\ORM\EntityManager;
 use Oro\Bundle\CacheBundle\Provider\DirectoryAwareFileCacheInterface;
 use Oro\Bundle\EntityBundle\ORM\EntityAliasResolver;
 use Oro\Bundle\EntityBundle\Tools\SafeDatabaseChecker;
@@ -144,6 +145,7 @@ abstract class CacheCommand extends Command
      */
     protected function warmupProxies(OutputInterface $output): void
     {
+        /** @var EntityManager $em */
         $em = $this->doctrine->getManager();
         if ($em->getConfiguration()->getAutoGenerateProxyClasses()) {
             return;

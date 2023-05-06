@@ -26,7 +26,7 @@ class Configuration implements ConfigurationInterface
         SettingsBuilder::append(
             $rootNode,
             [
-                'web_api' => ['type' => 'boolean', 'value' => false]
+                'web_api' => ['type' => 'boolean', 'value' => true]
             ]
         );
 

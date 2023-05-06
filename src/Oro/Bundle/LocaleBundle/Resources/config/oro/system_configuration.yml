@@ -44,16 +44,6 @@ system_configuration:
                 constraints:
                     - NotBlank: ~
 
-        oro_locale.currency:
-            data_type: string
-            type: Oro\Bundle\CurrencyBundle\Form\Type\CurrencyType
-            priority: 20
-            options:
-                label: oro.locale.system_configuration.fields.currency.label
-                tooltip: oro.locale.form.tooltip.currency
-                required: true
-                constraints:
-                    - NotBlank: ~
 
         oro_locale.quarter_start:
             data_type: array
@@ -176,7 +166,6 @@ system_configuration:
             oro_locale.country: ~
             oro_locale.format_address_by_address_country: ~
             oro_locale.timezone: ~
-            oro_locale.currency: ~
             oro_locale.quarter_start: ~
             oro_locale.temperature_unit: ~
             oro_locale.wind_speed_unit: ~

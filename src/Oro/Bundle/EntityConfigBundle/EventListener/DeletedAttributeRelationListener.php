@@ -1,7 +1,7 @@
 <?php
 namespace Oro\Bundle\EntityConfigBundle\EventListener;
 
-use Doctrine\Inflector\Inflector;
+//use Doctrine\Inflector\Inflector;
 use Doctrine\ORM\Event\OnFlushEventArgs;
 use Oro\Bundle\EntityConfigBundle\Attribute\Entity\AttributeFamily;
 use Oro\Bundle\EntityConfigBundle\Attribute\Entity\AttributeGroupRelation;
@@ -36,16 +36,13 @@ class DeletedAttributeRelationListener
      * @var array
      */
     protected $deletedAttributes = [];
-    private Inflector $inflector;
 
     public function __construct(
         MessageProducerInterface $messageProducer,
         DeletedAttributeProviderInterface $deletedAttributeProvider,
-        Inflector $inflector
     ) {
         $this->messageProducer = $messageProducer;
         $this->deletedAttributeProvider = $deletedAttributeProvider;
-        $this->inflector = $inflector;
     }
 
     /**

@@ -16,6 +16,8 @@ framework:
                     - oro_cache.data.adapter
             oro.data.cache.without_memory_cache:
                 adapter: oro_cache.data.adapter
+            oro.data.system_cache:
+                adapter: oro_cache.data.adapter_tag
 
     annotations:
         cache: php_array

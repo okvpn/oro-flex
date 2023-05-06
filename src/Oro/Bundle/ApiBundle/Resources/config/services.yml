@@ -26,6 +26,30 @@ parameters:
     oro_api.max_delete_entities: ~
 
 services:
+    Oro\Bundle\ApiBundle\Routing\RestActionReader:
+        arguments:
+            - '@annotation_reader'
+            - '@fos_rest.request.param_fetcher.reader'
+    
+    Oro\Bundle\ApiBundle\Routing\RestControllerReader:
+        arguments:
+            - '@Oro\Bundle\ApiBundle\Routing\RestActionReader'
+            - '@annotation_reader'
+    
+    Oro\Bundle\ApiBundle\Routing\RestRouteLoader:
+        arguments:
+            - '@service_container'
+            - '@file_locator'
+            - '@Oro\Bundle\ApiBundle\Routing\RestControllerReader'
+        tags:
+            - { name: routing.loader }
+    
+    Oro\Bundle\ApiBundle\Routing\RestYamlCollectionLoader:
+        arguments:
+            - '@file_locator'
+        tags:
+            - { name: routing.loader }
+
     oro_api.action_processor_bag:
         class: Oro\Bundle\ApiBundle\Processor\ActionProcessorBag
 

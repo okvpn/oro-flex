@@ -39,7 +39,7 @@ class CleanupCommand extends Command implements CronCommandInterface
         return true;
     }
 
-    public function getDefaultDefinition()
+    public static function getDefaultDefinition(): string
     {
         return '0 1 * * *';
     }

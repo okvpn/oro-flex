@@ -2,6 +2,7 @@
 
 namespace Oro\Bundle\WsseAuthenticationBundle\Security\Http\Firewall;
 
+use Oro\Bundle\WsseAuthenticationBundle\Security\WsseRestrictAccessTrait;
 use Oro\Bundle\WsseAuthenticationBundle\Security\WsseTokenFactoryInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
@@ -9,6 +10,7 @@ use Symfony\Component\Security\Core\Authentication\AuthenticationManagerInterfac
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
+use Symfony\Component\Security\Core\Exception\CustomUserMessageAuthenticationException;
 use Symfony\Component\Security\Http\EntryPoint\AuthenticationEntryPointInterface;
 
 /**
@@ -16,6 +18,8 @@ use Symfony\Component\Security\Http\EntryPoint\AuthenticationEntryPointInterface
  */
 class WsseAuthenticationListener
 {
+    use WsseRestrictAccessTrait;
+
     private TokenStorageInterface $tokenStorage;
 
     private AuthenticationManagerInterface $authenticationManager;
@@ -65,6 +69,7 @@ class WsseAuthenticationListener
                 $returnValue = $this->authenticationManager->authenticate($token);
 
                 if ($returnValue instanceof TokenInterface) {
+                    $this->checkRequest($request, $token);
                     $this->tokenStorage->setToken($returnValue);
                     return;
                 }
@@ -73,6 +78,8 @@ class WsseAuthenticationListener
                     $event->setResponse($returnValue);
                     return;
                 }
+            } catch (CustomUserMessageAuthenticationException $e) {
+                throw $e;
             } catch (AuthenticationException $e) {
                 $event->setResponse($this->authenticationEntryPoint->start($request, $e));
             }

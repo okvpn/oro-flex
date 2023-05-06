@@ -75,6 +75,7 @@ services:
         class: Oro\Bundle\DistributionBundle\Handler\ApplicationState
         arguments:
             - '@doctrine.dbal.config_connection'
+            - '@oro_cache.core'
 
     Oro\Bundle\DistributionBundle\Handler\ApplicationState:
         public: true

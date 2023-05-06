@@ -23,12 +23,15 @@ class FixRestAnnotationsPass implements CompilerPassInterface
      */
     public function process(ContainerBuilder $container)
     {
-        if ($container->has(self::ROUTING_LOADER_SERVICE) && $container->has(self::REST_ROUTING_LOADER_SERVICE)) {
+        if ($container->has(self::ROUTING_LOADER_SERVICE)) {
             $this->replaceAnnotationReader(
                 $container,
                 self::ROUTING_LOADER_SERVICE,
                 0
             );
+        }
+
+        if ($container->has(self::REST_ROUTING_LOADER_SERVICE)) {
             $this->replaceAnnotationReader(
                 $container,
                 self::REST_ROUTING_LOADER_SERVICE,

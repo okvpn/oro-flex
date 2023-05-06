@@ -5,6 +5,7 @@ namespace Oro\Bundle\ReminderBundle\Command;
 
 use Doctrine\Persistence\ManagerRegistry;
 use Oro\Bundle\CronBundle\Command\CronCommandInterface;
+use Oro\Bundle\CronBundle\Model\ActiveAwareCronInterface;
 use Oro\Bundle\ReminderBundle\Entity\Reminder;
 use Oro\Bundle\ReminderBundle\Entity\Repository\ReminderRepository;
 use Oro\Bundle\ReminderBundle\Model\ReminderSenderInterface;
@@ -15,7 +16,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 /**
  * Sends reminders that are due now.
  */
-class SendRemindersCommand extends Command implements CronCommandInterface
+class SendRemindersCommand extends Command implements CronCommandInterface, ActiveAwareCronInterface
 {
     /** @var string */
     protected static $defaultName = 'oro:cron:send-reminders';
@@ -31,12 +32,12 @@ class SendRemindersCommand extends Command implements CronCommandInterface
         parent::__construct();
     }
 
-    public function getDefaultDefinition()
+    public static function getDefaultDefinition(): ?string
     {
         return '*/1 * * * *';
     }
 
-    public function isActive()
+    public function isActive(): bool
     {
         $count = $this->getReminderRepository()->countRemindersToSend();
 

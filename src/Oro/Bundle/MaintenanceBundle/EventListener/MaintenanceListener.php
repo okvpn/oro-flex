@@ -112,12 +112,12 @@ class MaintenanceListener
     {
         $isMaintenanceOn = false;
         $driver = $this->driverFactory->getDriver();
-        if (HttpKernelInterface::MASTER_REQUEST === $event->getRequestType() && $driver->decide()) {
+        if (HttpKernelInterface::MAIN_REQUEST === $event->getRequestType() && $driver->decide()) {
             $isMaintenanceOn = true;
             $this->routerListener->onKernelRequest($event);
         }
 
-        if (!$event->isMasterRequest()) {
+        if (!$event->isMainRequest()) {
             return;
         }
 

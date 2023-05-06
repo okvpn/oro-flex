@@ -111,10 +111,8 @@ class OroEntityExtendBundle extends Bundle
                 $exitStatusCode = $process->run();
                 if ($exitStatusCode) {
                     $output = $process->getErrorOutput();
+                    $output .= $process->getOutput();
 
-                    if (empty($output)) {
-                        $output = $process->getOutput();
-                    }
                     throw new \RuntimeException($output);
                 }
 
@@ -187,7 +185,8 @@ class OroEntityExtendBundle extends Bundle
             $projectDir . '/bin/console',
             $commandName,
             sprintf('%s=%s', '--env', $this->kernel->getEnvironment()),
-            sprintf('%s=%s', '--cache-dir', $this->cacheDir)
+            sprintf('%s=%s', '--cache-dir', $this->cacheDir),
+            '-vvv'
         ];
 
         $process = new Process($processArguments, $projectDir);

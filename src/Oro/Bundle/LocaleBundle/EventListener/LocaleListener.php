@@ -33,7 +33,7 @@ class LocaleListener implements EventSubscriberInterface
 
     private bool $installed;
 
-    private ?string $currentLanguage = null;
+    private ?string $currentLanguage = 'en';
 
     /**
      * @param LocaleSettings $localeSettings

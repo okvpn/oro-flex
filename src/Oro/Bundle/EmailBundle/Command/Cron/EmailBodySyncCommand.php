@@ -39,17 +39,10 @@ class EmailBodySyncCommand extends Command implements CronCommandInterface
         $this->synchronizer = $synchronizer;
     }
 
-    public function getDefaultDefinition()
+    public static function getDefaultDefinition(): ?string
     {
-        return '*/30 * * * *';
-    }
-
-    /**
-     * @return bool
-     */
-    public function isActive()
-    {
-        return $this->featureChecker->isResourceEnabled(self::getDefaultName(), 'cron_jobs');
+        return null;
+//        return '*/30 * * * *';
     }
 
     /** @noinspection PhpMissingParentCallCommonInspection */

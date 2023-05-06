@@ -27,14 +27,9 @@ class CalendarDateCommand extends Command implements CronCommandInterface
         parent::__construct();
     }
 
-    public function getDefaultDefinition()
+    public static function getDefaultDefinition(): ?string
     {
         return '01 00 * * *';
-    }
-
-    public function isActive()
-    {
-        return true;
     }
 
     /** @noinspection PhpMissingParentCallCommonInspection */

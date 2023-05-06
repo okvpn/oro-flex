@@ -41,12 +41,10 @@ class ConsumerHeartbeatCommand extends Command implements
         parent::__construct();
     }
 
-    public function getDefaultDefinition()
+    public static function getDefaultDefinition(): ?string
     {
-        return \sprintf(
-            '*/%u * * * *',
-            $this->heartBeatUpdatePeriod
-        );
+        return null;
+//        return '*/15 * * * *';
     }
 
     public function isActive()

@@ -173,11 +173,7 @@ class DataGridExtension extends AbstractExtension implements ServiceSubscriberIn
         } catch (\Exception $e) {
             $this->getLogger()->error('Getting grid data failed.', ['exception' => $e]);
 
-            return [
-                "data"     => [],
-                "metadata" => [],
-                "options"  => []
-            ];
+            throw $e;
         }
     }
 

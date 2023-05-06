@@ -3,7 +3,6 @@
 namespace Oro\Bundle\LocaleBundle\Model;
 
 use Oro\Bundle\ConfigBundle\Config\ConfigManager;
-use Oro\Bundle\CurrencyBundle\DependencyInjection\Configuration as CurrencyConfig;
 use Oro\Bundle\LocaleBundle\Configuration\LocaleConfigurationProvider;
 use Oro\Bundle\LocaleBundle\DependencyInjection\Configuration;
 use Oro\Bundle\LocaleBundle\Manager\LocalizationManager;
@@ -297,15 +296,7 @@ class LocaleSettings
      */
     public function getCurrency()
     {
-        if (null === $this->currency) {
-            $this->currency = $this->configManager->get(
-                CurrencyConfig::getConfigKeyByName(CurrencyConfig::KEY_DEFAULT_CURRENCY)
-            );
-            if (!$this->currency) {
-                $this->currency = CurrencyConfig::DEFAULT_CURRENCY;
-            }
-        }
-        return $this->currency;
+        return $this->currency = 'USD';
     }
 
     /**
@@ -527,6 +518,12 @@ class LocaleSettings
 
     private function getLocalizationData(): array
     {
+        return [
+            'languageCode' => 'en',
+            'formattingCode' => 'en',
+            'rtlMode' => false,
+        ];
+
         return $this->localizationManager->getLocalizationData(
             (int)$this->configManager->get(Configuration::getConfigKeyByName(Configuration::DEFAULT_LOCALIZATION))
         );

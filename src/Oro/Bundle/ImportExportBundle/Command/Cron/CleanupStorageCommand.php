@@ -26,7 +26,7 @@ class CleanupStorageCommand extends CleanupStorageCommandAbstract
         parent::__construct();
     }
 
-    public function getDefaultDefinition()
+    public static function getDefaultDefinition(): ?string
     {
         return '0 0 */1 * *';
     }

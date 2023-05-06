@@ -2,22 +2,18 @@ services:
     oro_migration.db_id_name_generator:
         class: Oro\Bundle\MigrationBundle\Tools\DbIdentifierNameGenerator
 
-    oro_migration.service_container:
-        class: Oro\Bundle\MigrationBundle\Container\MigrationContainer
-        public: true
+    oro.service_container:
+        class: Oro\Component\DependencyInjection\ContainerWeakRef
         arguments:
-            - '@?parameter_bag'
+            - '%kernel.cache_dir%/private-service-ids.php'
             - '@service_container'
-            - !service
-                class: Symfony\Component\DependencyInjection\ServiceLocator
-                arguments: [[]]
 
     oro_migration.data_fixtures.loader:
         class: Oro\Bundle\MigrationBundle\Migration\Loader\DataFixturesLoader
         public: false
         arguments:
             - '@doctrine.orm.entity_manager'
-            - '@oro_migration.service_container'
+            - '@oro.service_container'
 
     oro_migration.data_fixtures.executor:
         class: Oro\Bundle\MigrationBundle\Migration\DataFixturesExecutor
@@ -31,7 +27,7 @@ services:
         arguments:
             - '@kernel'
             - '@doctrine.dbal.default_connection'
-            - '@oro_migration.service_container'
+            - '@oro.service_container'
             - '@event_dispatcher'
 
     oro_migration.migrations.query_executor:

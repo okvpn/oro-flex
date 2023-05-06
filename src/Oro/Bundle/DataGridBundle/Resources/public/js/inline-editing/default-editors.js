@@ -83,7 +83,15 @@ define(function(require) {
          *
          * @type {Function}
          */
-        select: require('oroform/js/app/views/editor/select-editor-view')
+        select: require('oroform/js/app/views/editor/select-editor-view'),
+
+        /**
+         * Please see [number-editor-view](../../../../FormBundle/Resources/doc/editor/number-editor-view.md)
+         * for details
+         *
+         * @type {Function}
+         */
+        boolean: require('oroform/js/app/views/editor/number-editor-view'),
     };
 
     return defaultEditors;

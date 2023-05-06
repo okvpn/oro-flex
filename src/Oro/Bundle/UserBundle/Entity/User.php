@@ -323,7 +323,7 @@ class User extends ExtendUser implements
      * @var UserApi[]|Collection
      *
      * @ORM\OneToMany(
-     *  targetEntity="UserApi", mappedBy="user", cascade={"persist", "remove"}, orphanRemoval=true, fetch="EXTRA_LAZY"
+     *  targetEntity="UserApi", mappedBy="user", cascade={"persist", "remove"}, orphanRemoval=true
      * )
      * @ConfigField(
      *      defaultValues={

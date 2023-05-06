@@ -3,7 +3,6 @@
 namespace Oro\Bundle\EntityExtendBundle\EventListener;
 
 use Doctrine\Common\Util\ClassUtils;
-use Doctrine\Inflector\Inflector;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Event\OnFlushEventArgs;
 use Doctrine\ORM\Mapping\ClassMetadata;
@@ -11,19 +10,13 @@ use Doctrine\ORM\PersistentCollection;
 use Doctrine\ORM\UnitOfWork;
 use Oro\Bundle\EntityExtendBundle\Entity\AbstractEnumValue;
 use Oro\Bundle\EntityExtendBundle\Tools\ExtendHelper;
+use Oro\Component\PhpUtils\Inflector;
 
 /**
  * Ensures multi-enums are properly flushed.
  */
 class SaveMultiEnumEntityListener
 {
-    private Inflector $inflector;
-
-    public function __construct(Inflector $inflector)
-    {
-        $this->inflector = $inflector;
-    }
-
     public function onFlush(OnFlushEventArgs $event): void
     {
         $em = $event->getEntityManager();
@@ -88,6 +81,6 @@ class SaveMultiEnumEntityListener
 
     private function getSnapshotFieldMethodSuffix(string $fieldName): string
     {
-        return $this->inflector->classify(ExtendHelper::getMultiEnumSnapshotFieldName($fieldName));
+        return Inflector::classify(ExtendHelper::getMultiEnumSnapshotFieldName($fieldName));
     }
 }

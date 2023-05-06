@@ -27,6 +27,7 @@ class DoctrineHelper implements ResetInterface
 
     /** @var array */
     private $entityClasses = [];
+    private $manageableEntityClasses = [];
 
     public function __construct(ManagerRegistry $registry)
     {
@@ -39,6 +40,7 @@ class DoctrineHelper implements ResetInterface
     public function reset()
     {
         $this->entityClasses = [];
+        $this->manageableEntityClasses = [];
     }
 
     /**
@@ -282,9 +284,26 @@ class DoctrineHelper implements ResetInterface
      *
      * @return bool
      */
-    public function isManageableEntityClass($entityClass)
+    public function isManageableEntityClass($entityClass, bool $onlyDefault = false)
     {
-        return null !== $this->registry->getManagerForClass($entityClass);
+        if (isset($this->manageableEntityClasses[$entityClass])) {
+            return $this->manageableEntityClasses[$entityClass];
+        }
+
+        if (true === $onlyDefault) {
+            $default = $this->registry->getManager();
+            if (!$default->getMetadataFactory()->isTransient($entityClass)) {
+                $this->manageableEntityClasses[$entityClass] = true;
+                return true;
+            }
+
+            return false;
+        }
+
+        $isManageable = null !== $this->registry->getManagerForClass($entityClass);
+        $this->manageableEntityClasses[$entityClass] = $isManageable;
+
+        return $isManageable;
     }
 
     /**

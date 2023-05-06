@@ -17,11 +17,6 @@ abstract class CleanupStorageCommandAbstract extends Command implements CronComm
 {
     protected const DEFAULT_PERIOD = 14; // days
 
-    public function isActive()
-    {
-        return true;
-    }
-
     /** @noinspection PhpMissingParentCallCommonInspection */
     protected function configure()
     {

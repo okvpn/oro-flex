@@ -30,6 +30,6 @@ class TicketDigestGenerator implements TicketDigestGeneratorInterface
      */
     public function generateDigest(string $nonce, string $created, string $password): string
     {
-        return $this->passwordEncoder->encodePassword(sprintf('%s|%s|%s', $nonce, $created, $password), $this->secret);
+        return sha1(sprintf('%s|%s|%s', $nonce, $created, $password), $this->secret);
     }
 }

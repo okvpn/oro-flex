@@ -28,6 +28,7 @@ class NodeProcessFactory
     public function create(array $command, string $cwd, $timeout = null): Process
     {
         if (!$this->jsEngine) {
+            $finder = new NodeJsExecutableFinder;
             throw new \RuntimeException('JS engine not found');
         }
         $process = new Process(array_merge([$this->jsEngine], $command), $cwd);

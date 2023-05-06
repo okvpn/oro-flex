@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace Oro\Bundle\IntegrationBundle\Command;
 
-use Doctrine\DBAL\Types\Types;
 use Doctrine\Persistence\ObjectManager;
 use Oro\Bundle\CronBundle\Command\CronCommandInterface;
 use Oro\Bundle\IntegrationBundle\Entity\Channel as Integration;
@@ -44,27 +43,10 @@ class SyncCommand extends Command implements CronCommandInterface
         parent::__construct();
     }
 
-    public function getDefaultDefinition()
+    public static function getDefaultDefinition(): ?string
     {
-        return '*/5 * * * *';
-    }
-
-    public function isActive()
-    {
-        /** @var ChannelRepository $integrationRepository */
-        $integrationRepository = $this->entityManager->getRepository(Integration::class);
-        $qb = $integrationRepository
-            ->createQueryBuilder('c')
-            ->select('COUNT(c.id)')
-            ->where('c.transport is NOT NULL')
-            ->andWhere('c.enabled = :isEnabled')
-            ->andWhere('c.connectors <> :emptyConnectors')
-            ->setParameter('isEnabled', true, Types::BOOLEAN)
-            ->setParameter('emptyConnectors', [], Types::ARRAY);
-
-        $count = $qb->getQuery()->getSingleScalarResult();
-
-        return ($count > 0);
+        return null;
+//        return '*/5 * * * *';
     }
 
     /** @noinspection PhpMissingParentCallCommonInspection */

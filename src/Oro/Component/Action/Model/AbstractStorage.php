@@ -111,11 +111,11 @@ abstract class AbstractStorage implements \ArrayAccess, \IteratorAggregate, \Cou
         try {
             $propertyPath = $this->getMappedPath($name);
             $value = $this->propertyAccessor->getValue($this->data, $propertyPath);
-            if ($value instanceof Proxy && !$value->__isInitialized()) {
-                // set value as null if entity is not exist
-                $value = $this->extractProxyEntity($value);
-                $this->set($name, $value);
-            }
+//            if ($value instanceof Proxy && !$value->__isInitialized()) {
+//                // set value as null if entity is not exist
+//                $value = $this->extractProxyEntity($value);
+//                $this->set($name, $value);
+//            }
 
             return $value;
         } catch (RuntimeException $e) {

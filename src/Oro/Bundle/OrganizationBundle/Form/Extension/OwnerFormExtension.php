@@ -510,7 +510,7 @@ class OwnerFormExtension extends AbstractTypeExtension implements ServiceSubscri
         if (is_object($entity)) {
             $entity = ClassUtils::getClass($entity);
         }
-        if (!$this->doctrineHelper->isManageableEntityClass($entity)) {
+        if (!$this->doctrineHelper->isManageableEntityClass($entity, true)) {
             return false;
         }
 

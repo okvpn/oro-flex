@@ -38,13 +38,12 @@
 {% endfor %}
 
 {% set localeConfigurationClass = '\\Oro\\Bundle\\LocaleBundle\\DependencyInjection\\Configuration::' %}
-{% set currencyConfigurationClass = '\\Oro\\Bundle\\CurrencyBundle\\DependencyInjection\\Configuration::' %}
 {% set defaults = {
     'locale':   constant(localeConfigurationClass ~ 'DEFAULT_LOCALE'),
     'language': constant(localeConfigurationClass ~ 'DEFAULT_LANGUAGE'),
     'rtl_mode': false,
     'country':  constant(localeConfigurationClass ~ 'DEFAULT_COUNTRY'),
-    'currency': constant(currencyConfigurationClass ~ 'DEFAULT_CURRENCY')
+    'currency': 'USD'
 } %}
 
 {# Mnemonic day names used in system to determination a week day independently of translations and number indexes #}
@@ -64,9 +63,9 @@
     'rtl_mode': oro_is_rtl_mode(),
     'country':  oro_country(),
     'currency': oro_currency(),
-    'currencyViewType': oro_currency_view_type(),
+    'currencyViewType': 'symbol',
     'currencySymbolPrepend': oro_currency_symbol_prepend(),
-    'currency_data': oro_currency_symbol_collection(),
+    'currency_data': {'USD': {'symbol': 'USD'}},
     'timezone': oro_timezone(),
     'timezone_offset': oro_timezone_offset(),
     'format_address_by_address_country': oro_format_address_by_address_country(),

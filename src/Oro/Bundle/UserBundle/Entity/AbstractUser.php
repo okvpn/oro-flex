@@ -637,19 +637,8 @@ abstract class AbstractUser implements
      */
     public function isBelongToOrganization(Organization $organization, bool $onlyEnabled = false): bool
     {
-        $organizationId = $organization->getId();
-        $organizations = $this->getOrganizations($onlyEnabled);
-        foreach ($organizations as $org) {
-            if (null === $organizationId) {
-                if ($org === $organization) {
-                    return true;
-                }
-            } elseif ($org->getId() === $organizationId) {
-                return true;
-            }
-        }
-
-        return false;
+        // Todo Disable. Does not support multiply organizations
+        return true;
     }
 
     /**

@@ -34,13 +34,12 @@ class OroMessageQueueBundle extends Bundle
      */
     public function build(ContainerBuilder $container)
     {
-        $container->addCompilerPass(new ConfigureDbalTransportExtensionsPass());
         $container->addCompilerPass(new BuildExtensionsPass());
         $container->addCompilerPass(new BuildMessageProcessorRegistryPass());
         $container->addCompilerPass(new BuildTopicMetaRegistryPass());
         $container->addCompilerPass(new BuildDestinationMetaRegistryPass());
         $container->addCompilerPass(new BuildMonologHandlersPass());
-        $container->addCompilerPass(new ConfigureClearersPass());
+
         $container->addCompilerPass(new MakeLoggerServicesPersistentPass());
         $container->addCompilerPass(new MakeAnnotationReaderServicesPersistentPass());
         $container->addCompilerPass(new PriorityNamedTaggedServiceWithHandlerCompilerPass(

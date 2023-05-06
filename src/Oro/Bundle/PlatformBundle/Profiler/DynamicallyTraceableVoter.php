@@ -27,7 +27,7 @@ class DynamicallyTraceableVoter extends TraceableVoter
     public function vote(TokenInterface $token, $subject, array $attributes): int
     {
         $result = $this->voter->vote($token, $subject, $attributes);
-        if (ProfilerConfig::isCollectorEnabled('security')) {
+        if (false && ProfilerConfig::isCollectorEnabled('security')) {
             $this->eventDispatcher->dispatch(
                 new VoteEvent($this->voter, $subject, $attributes, $result),
                 'debug.security.authorization.vote'

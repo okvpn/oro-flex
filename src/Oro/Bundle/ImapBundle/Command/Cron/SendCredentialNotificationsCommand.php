@@ -31,14 +31,10 @@ class SendCredentialNotificationsCommand extends Command implements CronCommandI
         $this->syncCredentialsIssueManager = $syncCredentialsIssueManager;
     }
 
-    public function getDefaultDefinition()
+    public static function getDefaultDefinition(): ?string
     {
-        return '0 4 * * *';
-    }
-
-    public function isActive()
-    {
-        return $this->featureChecker->isResourceEnabled(self::getDefaultName(), 'cron_jobs');
+        return null;
+//        return '0 4 * * *';
     }
 
     /** @noinspection PhpMissingParentCallCommonInspection */

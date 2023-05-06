@@ -229,13 +229,13 @@ HELP
         }
 
         $output->writeln('');
-        $output->writeln('<error>The application update is not possible:</error>');
+        $output->writeln('<comment>The application update is not possible:</comment>');
         foreach ($messages as $message) {
-            $output->writeln(sprintf('<error>  - %s</error>', $message));
+            $output->writeln(sprintf('<comment>  - %s</comment>', $message));
         }
         $output->writeln('');
 
-        return false;
+        return true;
     }
 
     protected function checkSuggestedMemory(OutputInterface $output): void

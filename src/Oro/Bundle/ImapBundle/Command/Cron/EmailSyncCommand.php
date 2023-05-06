@@ -48,14 +48,10 @@ class EmailSyncCommand extends Command implements CronCommandInterface
         parent::__construct();
     }
 
-    public function getDefaultDefinition()
+    public static function getDefaultDefinition(): ?string
     {
-        return '*/1 * * * *';
-    }
-
-    public function isActive()
-    {
-        return $this->featureChecker->isResourceEnabled(self::$defaultName, 'cron_jobs');
+        return null;
+//        return '*/1 * * * *';
     }
 
     /**

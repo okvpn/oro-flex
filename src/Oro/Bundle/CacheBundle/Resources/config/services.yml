@@ -15,6 +15,14 @@ services:
             - '%oro_cache.data_adapter_lifetime%'
             - '%oro_cache.data_adapter_directory%'
 
+    oro_cache.data.adapter_tag:
+        public: false
+        class: Symfony\Component\Cache\Adapter\FilesystemTagAwareAdapter
+        arguments:
+            - '%oro_cache.data_adapter_namespace%'
+            - '%oro_cache.data_adapter_lifetime%'
+            - '%oro_cache.data_adapter_directory%'
+
     oro_cache.oro_data_cache_manager:
         class: Oro\Bundle\CacheBundle\Manager\OroDataCacheManager
         public: true
@@ -147,3 +155,8 @@ services:
                 arguments:
                     - '%oro_cache.array_cache_lifetime%'
                     - '%oro_cache.array_cache_store_serialized%'
+
+    oro_cache.core:
+        parent: oro.data.system_cache
+        tags:
+            - { name: 'cache.pool', namespace: 'oro_system' }
