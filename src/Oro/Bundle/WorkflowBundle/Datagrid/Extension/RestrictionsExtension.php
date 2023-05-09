@@ -65,9 +65,7 @@ class RestrictionsExtension extends AbstractExtension
     {
         $className = $this->getEntity($config);
 
-        return $className
-            ? $this->restrictionsManager->hasEntityClassRestrictions($className)
-            : false;
+        return $className && $this->restrictionsManager->hasEntityClassRestrictions($className);
     }
 
     /**

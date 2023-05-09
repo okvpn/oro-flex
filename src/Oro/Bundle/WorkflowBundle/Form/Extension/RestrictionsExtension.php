@@ -50,7 +50,7 @@ class RestrictionsExtension extends AbstractTypeExtension
     {
         if ($options['disable_workflow_restrictions'] ||
             empty($options['data_class']) ||
-            $options['data_class'] === 'Oro\Bundle\ActionBundle\Model\Operation' ||
+            !str_contains($options['data_class'], '\\Entity\\') ||
             !$this->restrictionsManager->hasEntityClassRestrictions($options['data_class'])
         ) {
             return;

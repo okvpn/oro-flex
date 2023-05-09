@@ -4,6 +4,7 @@ namespace Oro\Bundle\WorkflowBundle\EventListener\Extension;
 
 use Doctrine\Common\Util\ClassUtils;
 use Doctrine\Persistence\ObjectManager;
+use Oro\Bundle\EntityBundle\DBAL\DBALEntityPersister;
 use Oro\Bundle\EntityBundle\ORM\DoctrineHelper;
 use Oro\Bundle\WorkflowBundle\Async\Topic\ExecuteProcessJobTopic;
 use Oro\Bundle\WorkflowBundle\Cache\EventTriggerCache;
@@ -19,6 +20,7 @@ use Oro\Bundle\WorkflowBundle\Model\ProcessLogger;
 use Oro\Bundle\WorkflowBundle\Model\ProcessSchedulePolicy;
 use Oro\Component\MessageQueue\Client\Message;
 use Oro\Component\MessageQueue\Client\MessageProducerInterface;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
  * Extension for process triggers.
@@ -43,7 +45,7 @@ class ProcessTriggerExtension extends AbstractEventTriggerExtension
     /**
      * @var MessageProducerInterface
      */
-    private $messageProducer;
+    protected $messageProducer;
 
     public function __construct(
         DoctrineHelper $doctrineHelper,
@@ -51,7 +53,9 @@ class ProcessTriggerExtension extends AbstractEventTriggerExtension
         ProcessLogger $logger,
         EventTriggerCache $triggerCache,
         ProcessSchedulePolicy $schedulePolicy,
-        MessageProducerInterface $messageProducer
+        MessageProducerInterface $messageProducer,
+        protected RequestStack $requestStack,
+        protected DBALEntityPersister $entityPersister,
     ) {
         $this->doctrineHelper = $doctrineHelper;
         $this->handler = $handler;
@@ -106,9 +110,9 @@ class ProcessTriggerExtension extends AbstractEventTriggerExtension
     public function process(ObjectManager $manager)
     {
         // handle processes
-        $hasQueuedOrHandledProcesses = false;
         $handledProcesses = [];
         $queuedJobs = [];
+        $existFlushEntity = false;
         foreach ($this->scheduledProcesses as &$entityProcesses) {
             while ($entityProcess = array_shift($entityProcesses)) {
                 /** @var ProcessTrigger $trigger */
@@ -123,31 +127,31 @@ class ProcessTriggerExtension extends AbstractEventTriggerExtension
 
                 if ($trigger->isQueued() || $this->forceQueued) {
                     $processJob = $this->queueProcess($trigger, $data);
-                    $manager->persist($processJob);
-
+                    $this->entityPersister->persist($processJob);
                     $queuedJobs[(int)$trigger->getTimeShift()][$trigger->getPriority()][] = $processJob;
                 } else {
                     $this->logger->debug('Process handled', $trigger, $data);
                     $this->handler->handleTrigger($trigger, $data);
                     $handledProcesses[] = $entityProcess;
+                    if ($trigger->getDefinition()->isFlushEntity()) {
+                        $existFlushEntity = true;
+                    }
                 }
-
-                $hasQueuedOrHandledProcesses = true;
             }
         }
 
         // save both handled entities and queued process jobs
-        if ($hasQueuedOrHandledProcesses) {
+        if ($existFlushEntity) {
             $manager->flush();
+        }
 
-            foreach ($handledProcesses as $entityProcess) {
-                /** @var ProcessTrigger $trigger */
-                $trigger = $entityProcess['trigger'];
-                /** @var ProcessData $data */
-                $data = $entityProcess['data'];
+        foreach ($handledProcesses as $entityProcess) {
+            /** @var ProcessTrigger $trigger */
+            $trigger = $entityProcess['trigger'];
+            /** @var ProcessData $data */
+            $data = $entityProcess['data'];
 
-                $this->handler->finishTrigger($trigger, $data);
-            }
+            $this->handler->finishTrigger($trigger, $data);
         }
 
         // delete unused processes
@@ -160,6 +164,7 @@ class ProcessTriggerExtension extends AbstractEventTriggerExtension
         }
 
         if (!empty($queuedJobs)) {
+            $this->entityPersister->flush();
             $this->createJobs($queuedJobs);
         }
     }
@@ -197,9 +202,21 @@ class ProcessTriggerExtension extends AbstractEventTriggerExtension
         // important to set modified flag to true
         $data = new ProcessData();
         $data->set('data', $entity);
-        if ($changeSet) {
+        $context = $this->getRequestContext();
+
+        foreach ($context as $name => $value) {
+            $data->set($name, $value);
+        }
+
+        if ($changeSet && isset($changeSet['__format'])) {
+            unset($changeSet['__format']);
+            foreach ($changeSet as $name => $value) {
+                $data->set($name, $value);
+            }
+        } elseif ($changeSet) {
             $data->set('changeSet', $changeSet);
         }
+
         if ($old || $new) {
             $data->set('old', $old)->set('new', $new);
         }
@@ -236,7 +253,12 @@ class ProcessTriggerExtension extends AbstractEventTriggerExtension
                 /** @var ProcessJob $processJob */
                 foreach ($processJobs as $processJob) {
                     $message = new Message();
-                    $message->setBody(['process_job_id' => $processJob->getId()]);
+                    $message->setBody([
+                        'process_job_id' => $processJob->getId(),
+                        'definition_name' => $processJob->getProcessTrigger()->getDefinition()->getName(),
+                        'entity_id' => $this->getEntity($processJob)
+                    ]);
+
                     $message->setPriority(ProcessPriority::convertToMessageQueuePriority($priority));
 
                     if ($timeShift) {
@@ -250,8 +272,32 @@ class ProcessTriggerExtension extends AbstractEventTriggerExtension
         }
     }
 
+    protected function getRequestContext()
+    {
+        if (!$request = $this->requestStack->getMainRequest()) {
+            return [];
+        }
+
+        return [
+            'route' => $request->attributes->get('_route'),
+            'request' => $request->request->all(),
+        ];
+    }
+
     /**
-     * @return ProcessTriggerRepository
+     * @param ProcessJob $processJob
+     * @return null|int
+     */
+    protected function getEntity(ProcessJob $processJob)
+    {
+        $data = $processJob->getData();
+        $entity = $data->getEntity();
+
+        return is_object($entity) && method_exists($entity, 'getId') ? $entity->getId() : null;
+    }
+
+    /**
+     * @return ProcessTriggerRepository|object
      */
     protected function getRepository()
     {

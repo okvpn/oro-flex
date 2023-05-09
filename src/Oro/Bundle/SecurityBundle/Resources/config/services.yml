@@ -506,14 +506,14 @@ services:
         abstract: true
         public: false
 
-#    oro_security.listener.context_listener:
-#        class: Oro\Bundle\SecurityBundle\Http\Firewall\ContextListener
-#        arguments:
-#            - '@security.token_storage'
-#            - '@doctrine'
-#            - '@logger'
-#        tags:
-#            - { name: kernel.event_listener, event: kernel.request, method: onKernelRequest, priority: 7 }
+    oro_security.listener.context_listener:
+        class: Oro\Bundle\SecurityBundle\Http\Firewall\ContextListener
+        arguments:
+            - '@security.token_storage'
+            - '@doctrine'
+            - '@logger'
+        tags:
+            - { name: kernel.event_listener, event: kernel.request, method: onKernelRequest, priority: 7 }
 
     oro_security.listener.api_listener:
           class: Oro\Bundle\SecurityBundle\EventListener\ApiEventListener

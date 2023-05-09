@@ -48,20 +48,13 @@ class ContextListener
             return;
         }
 
-        $isAccessGranted = false;
         $organization = $this->refreshOrganization($organization);
         if (null !== $organization) {
             $token->setOrganization($organization);
-
-            $user = $token->getUser();
-            if (!$user instanceof AbstractUser || $user->isBelongToOrganization($organization, true)) {
-                $isAccessGranted = true;
-            }
+            return;
         }
 
-        if (!$isAccessGranted) {
-            $this->denyAccess($event);
-        }
+        $this->denyAccess($event);
     }
 
     private function refreshOrganization(Organization $organization): ?Organization

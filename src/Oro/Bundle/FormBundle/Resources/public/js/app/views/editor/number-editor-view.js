@@ -100,6 +100,12 @@ define(function(require) {
         },
 
         formatRawValue: function(value) {
+            if (value === true) {
+                return 1;
+            } else if (value === false) {
+                return 0;
+            }
+
             if (isNaN(value)) {
                 return '';
             }

@@ -58,6 +58,14 @@ class ProcessDefinition implements DomainObjectInterface
      */
     protected $enabled = true;
 
+
+    /**
+     * @var boolean
+     *
+     * @ORM\Column(name="flush_entity", type="boolean")
+     */
+    protected $flushEntity = true;
+
     /**
      * @var string
      *
@@ -329,6 +337,24 @@ class ProcessDefinition implements DomainObjectInterface
     }
 
     /**
+     * @return bool
+     */
+    public function isFlushEntity()
+    {
+        return $this->flushEntity;
+    }
+
+    /**
+     * @param bool $flushEntity
+     * @return ProcessDefinition
+     */
+    public function setFlushEntity($flushEntity)
+    {
+        $this->flushEntity = $flushEntity;
+        return $this;
+    }
+
+    /**
      * @param ProcessDefinition $definition
      * @return ProcessDefinition
      */
@@ -341,6 +367,7 @@ class ProcessDefinition implements DomainObjectInterface
             ->setExecutionOrder($definition->getExecutionOrder())
             ->setActionsConfiguration($definition->getActionsConfiguration())
             ->setExcludeDefinitions($definition->getExcludeDefinitions())
+            ->setFlushEntity($definition->isFlushEntity())
             ->setPreConditionsConfiguration($definition->getPreConditionsConfiguration());
 
         return $this;

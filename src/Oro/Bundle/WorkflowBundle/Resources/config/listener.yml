@@ -4,8 +4,7 @@ services:
         arguments:
             - '@Psr\Container\ContainerInterface'
         tags:
-            - { name: doctrine.event_listener, event: onFlush }
-            - { name: doctrine.event_listener, event: postFlush }
+            - { name: kernel.event_listener, event: entityPersist, method: onPersist }
             - { name: doctrine.orm.entity_listener, entity: Oro\Bundle\WorkflowBundle\Entity\ProcessJob, event: postLoad }
             - { name: container.service_subscriber, id: oro_workflow.serializer.process.serializer }
 
@@ -69,6 +68,8 @@ services:
             - '@oro_workflow.cache.process_trigger'
             - '@oro_workflow.process.schedule_policy'
             - '@oro_message_queue.message_producer'
+            - '@request_stack'
+            - '@Oro\Bundle\EntityBundle\DBAL\DBALEntityPersister'
         tags:
             - { name: oro_workflow.listener.event_trigger_collector.extension }
 

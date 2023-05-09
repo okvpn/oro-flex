@@ -747,3 +747,8 @@ services:
     Oro\Bundle\EntityBundle\EntityConfig\FallbackFieldConfiguration:
         tags:
             - oro_entity_config.validation.entity_config
+
+    Oro\Bundle\EntityBundle\DBAL\DBALEntityPersister:
+        arguments:
+            - '@doctrine'
+            - '@event_dispatcher'

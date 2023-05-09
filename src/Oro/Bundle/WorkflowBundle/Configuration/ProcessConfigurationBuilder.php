@@ -53,6 +53,7 @@ class ProcessConfigurationBuilder
             ->setLabel($configuration['label'])
             ->setRelatedEntity($configuration['entity'])
             ->setEnabled($enabled)
+            ->setFlushEntity($configuration['flush_entity'] ?? true)
             ->setExecutionOrder($order)
             ->setExcludeDefinitions($excludeDefinitions)
             ->setActionsConfiguration($actionsConfiguration)

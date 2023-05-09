@@ -2,8 +2,7 @@
 
 namespace Oro\Bundle\WorkflowBundle\EventListener;
 
-use Doctrine\ORM\Event\OnFlushEventArgs;
-use Doctrine\ORM\Event\PostFlushEventArgs;
+use Oro\Bundle\EntityBundle\DBAL\Event\OroEntityEvent;
 use Oro\Bundle\WorkflowBundle\Entity\ProcessJob;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\Serializer\SerializerInterface;
@@ -16,32 +15,20 @@ class ProcessDataSerializeListener implements ServiceSubscriberInterface
 {
     private ContainerInterface $container;
     private string $format = 'json';
-    /** @var ProcessJob[] */
-    private array $scheduledEntities = [];
 
     public function __construct(ContainerInterface $container)
     {
         $this->container = $container;
     }
 
-    /**
-     * Before flush, serializes all ProcessJob's data
-     */
-    public function onFlush(OnFlushEventArgs $args): void
+    public function onPersist(OroEntityEvent $event): void
     {
-        $uow = $args->getEntityManager()->getUnitOfWork();
-        $this->scheduleEntities($uow->getScheduledEntityInsertions());
-        $this->scheduleEntities($uow->getScheduledEntityUpdates());
-    }
-
-    public function postFlush(PostFlushEventArgs $args): void
-    {
-        if ($this->scheduledEntities) {
-            while ($processJob = array_shift($this->scheduledEntities)) {
-                $this->serialize($processJob);
-            }
-            $args->getEntityManager()->flush();
+        $entity = $event->getEntity();
+        if (!$entity instanceof ProcessJob || !$entity->getData()->isModified()) {
+            return;
         }
+
+        $this->serialize($entity);
     }
 
     /**
@@ -50,15 +37,6 @@ class ProcessDataSerializeListener implements ServiceSubscriberInterface
     public function postLoad(ProcessJob $entity): void
     {
         $this->deserialize($entity);
-    }
-
-    private function scheduleEntities(array $entities): void
-    {
-        foreach ($entities as $entity) {
-            if ($this->isSupported($entity) && $entity->getData()->isModified()) {
-                $this->scheduledEntities[] = $entity;
-            }
-        }
     }
 
     /**

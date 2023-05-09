@@ -57,6 +57,10 @@ class RestrictionManager
      */
     public function hasEntityClassRestrictions($entityClass, $activeWorkflows = true)
     {
+        if (!str_contains($entityClass, '\\Entity\\')) {
+            return false;
+        }
+
         $this->loadClassRestrictions($entityClass);
         $restrictions = $this->restrictions[$entityClass];
 

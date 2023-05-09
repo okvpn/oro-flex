@@ -66,3 +66,7 @@ datagrids:
                 definition:
                     type: string
                     data_name: s.definition
+        options:
+            toolbarOptions:
+                pageSize:
+                    default_per_page: 100

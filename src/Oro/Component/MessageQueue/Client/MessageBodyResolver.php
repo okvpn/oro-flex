@@ -29,6 +29,7 @@ class MessageBodyResolver implements MessageBodyResolverInterface
         $optionsResolver = new OptionsResolver();
         $topic = $this->topicRegistry->get($topicName);
         $topic->configureMessageBody($optionsResolver);
+        $optionsResolver->setIgnoreUndefined();
 
         try {
             $resolvedBody = $this->resolve($optionsResolver, $body);
@@ -62,6 +63,10 @@ class MessageBodyResolver implements MessageBodyResolverInterface
 
         if ($isScalar) {
             $resolvedBody = is_array($resolvedBody['body']) ? $resolvedBody['body'] : (string) $resolvedBody['body'];
+        }
+
+        if (is_array($resolvedBody) && is_array($body)) {
+            $resolvedBody += $body;
         }
 
         return $resolvedBody;
