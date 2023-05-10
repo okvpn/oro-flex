@@ -1127,15 +1127,6 @@ services:
         public: true
         parent: oro_user.autocomplete.user.organization_search_handler
 
-    oro_email.listener.mailbox.authorization:
-        class: Oro\Bundle\EmailBundle\EventListener\MailboxAuthorizationListener
-        arguments:
-            - '@doctrine'
-            - '@security.authorization_checker'
-            - '@oro_security.token_accessor'
-        tags:
-            - { name: kernel.event_listener, event: kernel.controller, method: onKernelController }
-
     oro_email.listener.datagrid.mailbox_grid:
         class: Oro\Bundle\EmailBundle\EventListener\Datagrid\MailboxGridListener
         arguments:

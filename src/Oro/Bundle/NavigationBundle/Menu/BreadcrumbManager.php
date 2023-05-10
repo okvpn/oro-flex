@@ -6,26 +6,15 @@ use Knp\Menu\ItemInterface;
 use Knp\Menu\Matcher\Matcher;
 use Knp\Menu\Provider\MenuProviderInterface;
 use Knp\Menu\Util\MenuManipulator;
+use Symfony\Contracts\Cache\CacheInterface;
 
 /**
  * Provides breadcrumbs by the menu helps to find menu items
  */
 class BreadcrumbManager implements BreadcrumbManagerInterface
 {
-    /**
-     * @var Matcher
-     */
-    protected $matcher;
-
-    /**
-     * @var MenuProviderInterface
-     */
-    protected $provider;
-
-    public function __construct(MenuProviderInterface $provider, Matcher $matcher)
+    public function __construct(protected MenuProviderInterface $provider, protected Matcher $matcher, protected CacheInterface $cache)
     {
-        $this->matcher = $matcher;
-        $this->provider = $provider;
     }
 
     /** {@inheritdoc} */
@@ -125,16 +114,29 @@ class BreadcrumbManager implements BreadcrumbManagerInterface
     /** {@inheritdoc} */
     public function getBreadcrumbLabels($menu, $route)
     {
-        $labels = [];
-        $menuItem = $this->getMenuItemByRoute($this->getMenu($menu), $route);
-        if ($menuItem) {
-            $breadcrumb = $this->getBreadcrumbArray($menu, $menuItem, false);
-            foreach ($breadcrumb as $breadcrumbItem) {
-                $labels[] = $breadcrumbItem['label'];
+        $key = $this->getCacheKey('ml_', $menu, $route);
+
+        return $this->cache->get($key, function () use ($menu, $route) {
+            $labels = [];
+            $menuItem = $this->getMenuItemByRoute($this->getMenu($menu), $route);
+            if ($menuItem) {
+                $breadcrumb = $this->getBreadcrumbArray($menu, $menuItem, false);
+                foreach ($breadcrumb as $breadcrumbItem) {
+                    $labels[] = $breadcrumbItem['label'];
+                }
             }
+
+            return $labels;
+        });
+    }
+
+    protected function getCacheKey($prefix, $menu, $route): string
+    {
+        if ($menu instanceof ItemInterface) {
+            $menu = $menu->getName();
         }
 
-        return $labels;
+        return $prefix . sha1($menu.$route);
     }
 
     /**

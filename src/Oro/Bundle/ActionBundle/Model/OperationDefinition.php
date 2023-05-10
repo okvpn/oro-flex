@@ -21,6 +21,9 @@ class OperationDefinition
     private $enabled = true;
 
     /** @var boolean */
+    private $opcache = false;
+
+    /** @var boolean */
     private $pageReload = true;
 
     /** @var string */
@@ -127,6 +130,24 @@ class OperationDefinition
     public function isEnabled()
     {
         return $this->enabled;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isOpcache(): bool
+    {
+        return $this->opcache;
+    }
+
+    /**
+     * @param bool $opcache
+     * @return OperationDefinition
+     */
+    public function setOpcache(bool $opcache)
+    {
+        $this->opcache = $opcache;
+        return $this;
     }
 
     public function isPageReload(): bool

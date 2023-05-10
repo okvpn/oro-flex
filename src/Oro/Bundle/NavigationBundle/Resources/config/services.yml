@@ -248,6 +248,7 @@ services:
           - '@oro_navigation.title_translator'
           - '@oro_config.user'
           - '@oro_navigation.chain_breadcrumb_manager'
+          - '@oro_cache.core'
 
     oro_navigation.title_translator:
         class: Oro\Bundle\NavigationBundle\Provider\TitleTranslator
@@ -354,6 +355,7 @@ services:
         arguments:
             - '@oro_menu.builder_chain'
             - '@knp_menu.matcher'
+            - '@oro_cache.core'
         tags:
             - { name: oro_breadcrumbs.provider, priority: -255 }
 

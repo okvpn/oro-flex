@@ -6,6 +6,7 @@ use Knp\Menu\ItemInterface;
 use Oro\Bundle\ConfigBundle\Config\ConfigManager;
 use Oro\Bundle\NavigationBundle\Menu\BreadcrumbManagerInterface;
 use Oro\Bundle\NavigationBundle\Title\TitleReader\TitleReaderRegistry;
+use Symfony\Contracts\Cache\CacheInterface;
 
 /**
  * Navigation title helper.
@@ -29,11 +30,6 @@ class TitleService implements TitleServiceInterface
     private $shortTemplate;
 
     /**
-     * @var TitleReaderRegistry
-     */
-    private $titleReaderRegistry;
-
-    /**
      * Current title template params
      *
      * @var array
@@ -54,31 +50,16 @@ class TitleService implements TitleServiceInterface
      */
     private $prefix;
 
-    /**
-     * @var TitleTranslator
-     */
-    private $titleTranslator;
 
-    /**
-     * @var BreadcrumbManagerInterface
-     */
-    protected $breadcrumbManager;
 
-    /**
-     * @var ConfigManager
-     */
-    protected $userConfigManager;
 
     public function __construct(
-        TitleReaderRegistry $titleReaderRegistry,
-        TitleTranslator $titleTranslator,
-        ConfigManager $userConfigManager,
-        BreadcrumbManagerInterface $breadcrumbManager
+        protected TitleReaderRegistry $titleReaderRegistry,
+        protected TitleTranslator $titleTranslator,
+        protected ConfigManager $userConfigManager,
+        protected BreadcrumbManagerInterface $breadcrumbManager,
+        protected CacheInterface $cache
     ) {
-        $this->titleReaderRegistry = $titleReaderRegistry;
-        $this->titleTranslator = $titleTranslator;
-        $this->userConfigManager = $userConfigManager;
-        $this->breadcrumbManager = $breadcrumbManager;
     }
 
     /**
@@ -452,26 +433,30 @@ class TitleService implements TitleServiceInterface
      */
     protected function mergeTitleWithBreadcrumbLabels($route, $title, $menuName)
     {
-        $titleData = [];
-        if ($title) {
-            $titleData[] = $title;
-        }
-        $breadcrumbLabels = $this->getBreadcrumbLabels($route, $menuName);
-        if (count($breadcrumbLabels)) {
-            $breadcrumbs = $this->getBreadcrumbs($menuName, false, $route);
-            if (!empty($breadcrumbs)) {
-                /** @var ItemInterface $menuItem */
-                $menuItem = $breadcrumbs[0]['item'];
-                $routes = $menuItem->getExtra('routes', []);
-                if ($routes === [$route] && $title) {
-                    unset($breadcrumbLabels[0]);
+        $key = "Title".sha1($route.$title.$menuName);
+
+        return $this->cache->get($key, function () use ($route, $title, $menuName) {
+            $titleData = [];
+            if ($title) {
+                $titleData[] = $title;
+            }
+            $breadcrumbLabels = $this->getBreadcrumbLabels($route, $menuName);
+            if (count($breadcrumbLabels)) {
+                $breadcrumbs = $this->getBreadcrumbs($menuName, false, $route);
+                if (!empty($breadcrumbs)) {
+                    /** @var ItemInterface $menuItem */
+                    $menuItem = $breadcrumbs[0]['item'];
+                    $routes = $menuItem->getExtra('routes', []);
+                    if ($routes === [$route] && $title) {
+                        unset($breadcrumbLabels[0]);
+                    }
                 }
+
+                $titleData = array_merge($titleData, $breadcrumbLabels);
             }
 
-            $titleData = array_merge($titleData, $breadcrumbLabels);
-        }
-
-        return $titleData;
+            return $titleData;
+        });
     }
 
     /**

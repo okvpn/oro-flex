@@ -1078,7 +1078,7 @@ services:
             - '@doctrine'
             - 'message_queue'
         calls:
-            - [setLockFactory, ['@lock.batch_api.factory']]
+            - [setLockFactory, ['@?lock.batch_api.factory']]
             - [setLogger, ['@logger']]
         tags:
             - { name: monolog.logger, channel: api }

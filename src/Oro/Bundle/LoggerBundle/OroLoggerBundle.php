@@ -20,8 +20,6 @@ class OroLoggerBundle extends Bundle
     {
         parent::build($container);
 
-        $container->addCompilerPass(new ErrorLogNotificationMailerHandlerPass());
-        $container->addCompilerPass(new ConfigurableLoggerPass());
         $container->addCompilerPass(new LoggerPass());
     }
 }

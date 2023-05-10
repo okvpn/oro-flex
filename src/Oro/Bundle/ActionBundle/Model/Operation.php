@@ -65,6 +65,14 @@ class Operation
     }
 
     /**
+     * @return bool
+     */
+    public function isOpcache(): bool
+    {
+        return $this->getDefinition()->isOpcache();
+    }
+
+    /**
      * @return string
      */
     public function getName()

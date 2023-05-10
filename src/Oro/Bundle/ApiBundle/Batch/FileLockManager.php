@@ -27,7 +27,7 @@ class FileLockManager
     {
     }
 
-    public function setLockFactory(LockFactory $lockFactory)
+    public function setLockFactory(?LockFactory $lockFactory)
     {
         $this->lockFactory = $lockFactory;
     }
@@ -50,6 +50,10 @@ class FileLockManager
      */
     public function acquireLock(string $lockFileName, int $attemptLimit = 50, int $waitBetweenAttempts = 100): bool
     {
+        if (null === $this->lockFactory) {
+            return true;
+        }
+
         if (isset($this->locks[$lockFileName])) {
             throw new \LogicException(sprintf('The lock for "%s" already acquired.', $lockFileName));
         }
@@ -78,6 +82,10 @@ class FileLockManager
      */
     public function releaseLock(string $lockFileName): void
     {
+        if (null === $this->lockFactory) {
+            return;
+        }
+
         if (!isset($this->locks[$lockFileName])) {
             return;
         }

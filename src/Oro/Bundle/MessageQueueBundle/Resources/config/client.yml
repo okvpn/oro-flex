@@ -164,20 +164,6 @@ services:
         tags:
             - { name: oro.doctrine.connection.transaction_watcher }
 
-    oro_message_queue.client.request_watcher:
-        class: Oro\Bundle\MessageQueueBundle\Client\RequestWatcher
-        arguments:
-            - '@oro_message_queue.client.buffered_message_producer'
-        tags:
-            - { name: kernel.event_subscriber }
-
-    oro_message_queue.client.command_watcher:
-        class: Oro\Bundle\MessageQueueBundle\Client\CommandWatcher
-        arguments:
-            - '@oro_message_queue.client.buffered_message_producer'
-        tags:
-            - { name: kernel.event_subscriber }
-
     oro_message_queue.client.processor_watcher:
         class: Oro\Bundle\MessageQueueBundle\Client\ProcessorWatcher
         arguments:

@@ -3,6 +3,7 @@
 namespace Oro\Bundle\ActionBundle\Configuration;
 
 use Oro\Bundle\ActionBundle\Model\OperationDefinition;
+use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\NodeBuilder;
 use Symfony\Component\Config\Definition\Builder\NodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
@@ -61,6 +62,7 @@ class Configuration implements ConfigurationInterface
 
     protected function appendOperations(NodeBuilder $builder)
     {
+        /** @var NodeBuilder $children */
         $children = $builder
             ->arrayNode('operations')
                 ->useAttributeAsKey('name')
@@ -89,6 +91,7 @@ class Configuration implements ConfigurationInterface
             ->arrayNode('groups')
                 ->prototype('scalar')->end()
             ->end()
+            ->booleanNode('opcache')->defaultFalse()->end()
             ->booleanNode('for_all_entities')
                 ->defaultFalse()
             ->end()

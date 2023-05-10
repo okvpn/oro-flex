@@ -23,13 +23,13 @@ services:
             - ['setContainer', ['@service_container']]
             - ['setFormatter', ['@monolog.formatter.normalizer']]
 
-    oro_logger.log_level_config_provider:
-        class: Oro\Bundle\LoggerBundle\Monolog\LogLevelConfig
-        arguments:
-            - '@oro_logger.cache'
-            - '@?oro_config.user'
-            - '@oro_distribution.handler.application_status'
-            - '%oro_logger.detailed_logs_default_level%'
+#    oro_logger.log_level_config_provider:
+#        class: Oro\Bundle\LoggerBundle\Monolog\LogLevelConfig
+#        arguments:
+#            - '@oro_logger.cache'
+#            - '@?oro_config.user'
+#            - '@oro_distribution.handler.application_status'
+#            - '%oro_logger.detailed_logs_default_level%'
 
     oro_logger.monolog.email_factory.error_log_notification:
         class: Oro\Bundle\LoggerBundle\Monolog\EmailFactory\ErrorLogNotificationEmailFactory

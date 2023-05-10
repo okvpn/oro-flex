@@ -182,9 +182,6 @@ class OroMessageQueueExtension extends Extension
 
     private function configureTestEnvironment(ContainerBuilder $container)
     {
-        $container->getDefinition('oro_message_queue.client.buffered_message_producer')
-            ->setClass(TestBufferedMessageProducer::class)
-            ->setPublic(true);
         $container->getDefinition('oro_message_queue.client.message_buffer_manager')
             ->setClass(TestMessageBufferManager::class);
     }

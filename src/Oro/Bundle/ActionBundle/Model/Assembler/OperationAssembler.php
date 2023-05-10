@@ -65,6 +65,7 @@ class OperationAssembler extends AbstractAssembler
             ->setLabel($this->getOption($options, 'label'))
             ->setSubstituteOperation($this->getOption($options, 'substitute_operation', null))
             ->setEnabled($this->getOption($options, 'enabled', true))
+            ->setOpcache($this->getOption($options, 'opcache', true))
             ->setPageReload($this->getOption($options, 'page_reload', true))
             ->setOrder($this->getOption($options, 'order', 0))
             ->setFormType($this->getOption($options, 'form_type', OperationType::class))
@@ -83,7 +84,7 @@ class OperationAssembler extends AbstractAssembler
             $operationDefinition->setActions($name, $this->getOption($options, $name, []));
         }
 
-        $this->addFeaturePrecondition($operationDefinition);
+        //$this->addFeaturePrecondition($operationDefinition);
         $this->addAclPrecondition($operationDefinition, $this->getOption($options, 'acl_resource'));
 
         return $operationDefinition;

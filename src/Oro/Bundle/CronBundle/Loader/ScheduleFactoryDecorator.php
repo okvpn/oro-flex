@@ -60,6 +60,7 @@ class ScheduleFactoryDecorator implements ScheduleFactoryInterface, ResetInterfa
      */
     public function reset(): void
     {
+        $this->registry->getManager()->clear(Schedule::class);
         $this->cachedSchedule = null;
     }
 }

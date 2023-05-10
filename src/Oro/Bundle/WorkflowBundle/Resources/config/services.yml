@@ -148,6 +148,7 @@ services:
     oro_workflow.registry.workflow_manager:
         class: 'Oro\Bundle\WorkflowBundle\Model\WorkflowManagerRegistry'
         public: true
+        lazy: true
         arguments:
             - '@oro_action.provider.current_application'
         calls:

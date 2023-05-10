@@ -31,7 +31,9 @@ class OperationButtonProviderExtension implements ButtonProviderExtensionInterfa
     protected $optionsResolver;
 
     /** @var ButtonContext */
-    private $baseButtonContext;
+    protected $baseButtonContext;
+
+    protected $opcache = [];
 
     public function __construct(
         OperationRegistry $operationRegistry,
@@ -87,6 +89,16 @@ class OperationButtonProviderExtension implements ButtonProviderExtensionInterfa
             );
         }
 
+        $opcacheKey = null;
+        if ($button->getOperation()->isOpcache()) {
+            $context = clone $buttonSearchContext;
+            $context->setEntity($context->getEntityClass());
+            $opcacheKey = hash('xxh3',  $button->getName() . $context->getHash());
+            if (isset($this->opcache[$opcacheKey])) {
+                return $this->opcache[$opcacheKey];
+            }
+        }
+
         $actionData = $this->getActionData($buttonSearchContext);
         try {
             $result = $button->getOperation()->isAvailable($actionData);
@@ -112,6 +124,9 @@ class OperationButtonProviderExtension implements ButtonProviderExtensionInterfa
         );
 
         $button->setData($actionData);
+        if (null !== $opcacheKey) {
+            return $this->opcache[$opcacheKey] = $result;
+        }
 
         return $result;
     }
