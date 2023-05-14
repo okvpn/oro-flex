@@ -2,6 +2,7 @@
 
 namespace Oro\Bundle\MessageQueueBundle\Consumption\Extension;
 
+use Oro\Component\Math\Fibonacci;
 use Oro\Component\MessageQueue\Client\DriverInterface;
 use Oro\Component\MessageQueue\Client\Message;
 use Oro\Component\MessageQueue\Consumption\AbstractExtension;
@@ -29,11 +30,7 @@ class RedeliveryMessageExtension extends AbstractExtension
      */
     private $delay;
 
-    /**
-     * @param DriverInterface $driver
-     * @param int             $delay The number of seconds the message should be delayed
-     */
-    public function __construct(DriverInterface $driver, $delay)
+    public function __construct(DriverInterface $driver, $delay, private int $maxRedelivered = 25)
     {
         $this->driver = $driver;
         $this->delay = $delay;
@@ -49,15 +46,6 @@ class RedeliveryMessageExtension extends AbstractExtension
             return;
         }
 
-        if ($context->getStatus()) {
-            // There is no sense in proceeding as message status is already known.
-            $context->getLogger()->debug(
-                'Skipping extension as message status is already set.',
-                ['messageId' => $message->getMessageId(), 'status' => $context->getStatus()]
-            );
-            return;
-        }
-
         $properties = $message->getProperties();
         if (! isset($properties[self::PROPERTY_REDELIVER_COUNT])) {
             $properties[self::PROPERTY_REDELIVER_COUNT] = 1;
@@ -65,11 +53,17 @@ class RedeliveryMessageExtension extends AbstractExtension
             $properties[self::PROPERTY_REDELIVER_COUNT]++;
         }
 
+        if ($properties[self::PROPERTY_REDELIVER_COUNT] > $this->maxRedelivered) {
+            $context->setStatus(MessageProcessorInterface::REJECT);
+            $context->getLogger()->error('Max count of REDELIVER.');
+            return;
+        }
+
         $delayedMessage = new Message();
         $delayedMessage->setBody($message->getBody());
         $delayedMessage->setHeaders($message->getHeaders());
         $delayedMessage->setProperties($properties);
-        $delayedMessage->setDelay($this->delay);
+        $delayedMessage->setDelay(Fibonacci::fibonacciSeq($properties[self::PROPERTY_REDELIVER_COUNT]) + $this->delay);
         $delayedMessage->setMessageId($message->getMessageId());
 
         $queue = $context->getSession()->createQueue($context->getQueueName());

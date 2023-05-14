@@ -301,6 +301,7 @@
             "Oro\\Component\\Action\\": "src/Oro/Component/Action",
             "Oro\\Component\\ChainProcessor\\": "src/Oro/Component/ChainProcessor",
             "Oro\\Component\\Config\\": "src/Oro/Component/Config",
+            "Oro\\Component\\Sys\\": "src/Oro/Component/Sys",
             "Oro\\Component\\ConfigExpression\\": "src/Oro/Component/ConfigExpression",
             "Oro\\Component\\DependencyInjection\\": "src/Oro/Component/DependencyInjection",
             "Oro\\Component\\DoctrineUtils\\": "src/Oro/Component/DoctrineUtils",

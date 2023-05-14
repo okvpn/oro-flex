@@ -43,14 +43,6 @@ class RootJobStatusExtension extends AbstractExtension
         $this->calculateJobStatusMessage($job);
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function onError(Job $job)
-    {
-        $this->calculateJobStatusMessage($job);
-    }
-
     private function calculateJobStatusMessage(Job $job): void
     {
         $this->rootJobStatusCalculator->calculate($job);

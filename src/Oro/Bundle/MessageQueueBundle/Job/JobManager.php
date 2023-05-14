@@ -6,6 +6,7 @@ use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\LockMode;
 use Doctrine\DBAL\Platforms\MySqlPlatform;
 use Doctrine\DBAL\Types\Type;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\EntityManager;
 use Oro\Bundle\EntityBundle\ORM\DoctrineHelper;
 use Oro\Bundle\MessageQueueBundle\Entity\Job as JobEntity;
@@ -74,24 +75,32 @@ class JobManager implements JobManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function saveJob(Job $job): void
+    public function saveJob(Job $job, bool $dispatch = true): void
     {
         $em = $this->getEntityManager();
-        $em->getConnection()->transactional(function (Connection $connection) use ($job, $em) {
-            $this->eventDispatcher->dispatch(new BeforeSaveJobEvent($job), BeforeSaveJobEvent::EVENT_ALIAS);
+        if (true === $dispatch) {
+            $em->getConnection()->transactional(function (Connection $connection) use ($job, $em) {
+                $this->eventDispatcher->dispatch(new BeforeSaveJobEvent($job), BeforeSaveJobEvent::EVENT_ALIAS);
 
+                if ($job->getId()) {
+                    $this->updateJob($job, $em);
+                } else {
+                    if ($job->isRoot()) {
+                        $this->uniqueJobHandler->insert($connection, $job);
+                    }
+
+                    $this->insertJob($job, $em);
+                }
+
+                $this->eventDispatcher->dispatch(new AfterSaveJobEvent($job), AfterSaveJobEvent::EVENT_ALIAS);
+            });
+        } else {
             if ($job->getId()) {
                 $this->updateJob($job, $em);
             } else {
-                if ($job->isRoot()) {
-                    $this->uniqueJobHandler->insert($connection, $job);
-                }
-
                 $this->insertJob($job, $em);
             }
-
-            $this->eventDispatcher->dispatch(new AfterSaveJobEvent($job), AfterSaveJobEvent::EVENT_ALIAS);
-        });
+        }
 
         $em->getUnitOfWork()->registerManaged($job, ['id' => $job->getId()], []);
         $em->getUnitOfWork()->clearEntityChangeSet(spl_object_hash($job));
@@ -172,22 +181,22 @@ class JobManager implements JobManagerInterface
                 'startedAt' => $job->getStartedAt(),
                 'stoppedAt' => $job->getStoppedAt(),
                 'lastActiveAt' => $job->getLastActiveAt(),
-                'rootJob' => $job->getRootJob() ? $job->getRootJob()->getId() : null,
+                'rootJob' => $job->getRootJob()?->getId(),
                 'data' => $job->getData(),
                 'jobProgress' => $job->getJobProgress(),
             ], [
-                'ownerId' => Type::STRING,
-                'name' => Type::STRING,
-                'status' => Type::STRING,
-                'unique' => Type::BOOLEAN,
-                'interrupted' => Type::BOOLEAN,
-                'createdAt' => Type::DATETIME,
-                'startedAt' => Type::DATETIME,
-                'stoppedAt' => Type::DATETIME,
-                'lastActiveAt' => Type::DATETIME,
-                'rootJob' => Type::INTEGER,
-                'data' => Type::JSON_ARRAY,
-                'jobProgress' => Type::FLOAT,
+                'ownerId' => Types::STRING,
+                'name' => Types::STRING,
+                'status' => Types::STRING,
+                'unique' => Types::BOOLEAN,
+                'interrupted' => Types::BOOLEAN,
+                'createdAt' => Types::DATETIME_MUTABLE,
+                'startedAt' => Types::DATETIME_MUTABLE,
+                'stoppedAt' => Types::DATETIME_MUTABLE,
+                'lastActiveAt' => Types::DATETIME_MUTABLE,
+                'rootJob' => Types::INTEGER,
+                'data' => Types::JSON,
+                'jobProgress' => Types::FLOAT,
             ]);
 
         $qb->execute();
@@ -233,24 +242,24 @@ class JobManager implements JobManagerInterface
                 'startedAt' => $job->getStartedAt(),
                 'stoppedAt' => $job->getStoppedAt(),
                 'lastActiveAt' => $job->getLastActiveAt(),
-                'rootJob' => $job->getRootJob() ? $job->getRootJob()->getId() : null,
+                'rootJob' => $job->getRootJob()?->getId(),
                 'data' => $job->getData(),
                 'jobProgress' => $job->getJobProgress(),
                 'id' => $job->getId(),
             ], [
-                'ownerId' => Type::STRING,
-                'name' => Type::STRING,
-                'status' => Type::STRING,
-                'unique' => Type::BOOLEAN,
-                'interrupted' => Type::BOOLEAN,
-                'createdAt' => Type::DATETIME,
-                'startedAt' => Type::DATETIME,
-                'stoppedAt' => Type::DATETIME,
-                'lastActiveAt' => Type::DATETIME,
-                'rootJob' => Type::INTEGER,
-                'data' => Type::JSON_ARRAY,
-                'jobProgress' => Type::FLOAT,
-                'id' => Type::INTEGER
+                'ownerId' => Types::STRING,
+                'name' => Types::STRING,
+                'status' => Types::STRING,
+                'unique' => Types::BOOLEAN,
+                'interrupted' => Types::BOOLEAN,
+                'createdAt' => Types::DATETIME_MUTABLE,
+                'startedAt' => Types::DATETIME_MUTABLE,
+                'stoppedAt' => Types::DATETIME_MUTABLE,
+                'lastActiveAt' => Types::DATETIME_MUTABLE,
+                'rootJob' => Types::INTEGER,
+                'data' => Types::JSON,
+                'jobProgress' => Types::FLOAT,
+                'id' => Types::INTEGER
             ]);
 
         $qb->execute();

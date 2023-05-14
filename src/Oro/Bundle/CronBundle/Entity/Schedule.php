@@ -3,6 +3,8 @@
 namespace Oro\Bundle\CronBundle\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use Okvpn\Bundle\CronBundle\Model\ArgumentsStamp;
+use Okvpn\Bundle\CronBundle\Model\ScheduleEnvelope;
 use Oro\Bundle\EntityConfigBundle\Metadata\Annotation\Config;
 
 /**
@@ -142,11 +144,18 @@ class Schedule
         return $this;
     }
 
-    public static function calculateHash($command, array $arguments): string
+    public static function calculateHash($command, array $arguments = []): string
     {
         asort($arguments);
 
         return md5(json_encode([$command, $arguments]));
+    }
+
+    public static function scheduleEnvelopeHash(ScheduleEnvelope $envelope): string
+    {
+        $arguments = $envelope->get(ArgumentsStamp::class)?->getArguments();
+
+        return static::calculateHash($envelope->getCommand(), $arguments);
     }
 
     /**

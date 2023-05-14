@@ -165,9 +165,6 @@ class Job
     /**
      * Only JobProcessor is responsible to call this method.
      * Do not call from the outside.
-     *
-     * @internal
-     *
      * @param string $status
      */
     public function setStatus($status)

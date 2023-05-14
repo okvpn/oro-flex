@@ -187,3 +187,8 @@ services:
             - '%oro_platform.xdebug_warning_command_list%'
         tags:
             - { name: kernel.event_listener, event: console.command, method: onCommandExecute}
+
+    Oro\Bundle\PlatformBundle\EventListener\Console\LockCommandListener:
+        tags:
+            - { name: kernel.event_listener, event: console.command, method: onConsoleCommand }
+            - { name: kernel.event_listener, event: console.terminate, method: onConsoleTerminate }

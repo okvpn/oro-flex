@@ -12,6 +12,7 @@ use Oro\Bundle\CronBundle\Async\Topic\RunCommandTopic;
 use Oro\Bundle\CronBundle\Model\ActiveCommandStamp;
 use Oro\Bundle\CronBundle\Model\AsyncCronStamp;
 use Oro\Bundle\CronBundle\Tools\CommandRunner;
+use Oro\Component\MessageQueue\Client\Message;
 use Oro\Component\MessageQueue\Client\MessageProducerInterface;
 use Oro\Bundle\CronBundle\Model\EnvelopeTools as ET;
 
@@ -29,26 +30,32 @@ class AsyncCronMiddleware implements MiddlewareEngineInterface
     public function handle(ScheduleEnvelope $envelope, StackInterface $stack): ScheduleEnvelope
     {
         $synchronous = $envelope->get(ActiveCommandStamp::class)?->isSynchronous();
+        /** @var AsyncCronStamp $async */
+        $async = $envelope->get(AsyncCronStamp::class);
 
         $args = $envelope->get(ArgumentsStamp::class)?->getArguments() ?: [];
         if ($synchronous === true) {
             ET::info($envelope, "Running synchronous command");
 
             CommandRunner::runCommand(
-                $envelope->getCommand(),
-                array_merge($args, ['--env' => $this->environment])
+                command: $envelope->getCommand(),
+                params: array_merge($args, ['--env' => $this->environment]),
+                lock: (bool)$async?->isLock()
             );
             return $stack->end()->handle($envelope, $stack);
         }
 
-        if ($envelope->get(AsyncCronStamp::class)) {
-            $this->producer->send(
-                RunCommandTopic::getName(),
-                [
-                    'command' => $envelope->getCommand(),
-                    'arguments' => $args
-                ]
-            );
+        if (null !== $async) {
+            $message = new Message([
+                'command' => $envelope->getCommand(),
+                'arguments' => $args
+            ]);
+            if ($rand = $async->getRandomDelay()) {
+                [$min, $max] = is_int($rand) ? [0, $rand] : $rand;
+                $message->setDelay(random_int($min, $max));
+            }
+
+            $this->producer->send(RunCommandTopic::getName(), $message);
 
             return $stack->end()->handle($envelope, $stack);
         }

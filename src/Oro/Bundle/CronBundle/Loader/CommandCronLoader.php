@@ -7,6 +7,7 @@ namespace Oro\Bundle\CronBundle\Loader;
 use Okvpn\Bundle\CronBundle\Loader\ScheduleFactoryInterface;
 use Okvpn\Bundle\CronBundle\Loader\ScheduleLoaderInterface;
 use Oro\Bundle\CronBundle\Command\CronCommandInterface;
+use Oro\Bundle\CronBundle\Command\CronCommandOptionsInterface;
 use Oro\Bundle\CronBundle\Command\SynchronousCommandInterface;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Component\HttpKernel\KernelInterface;
@@ -76,6 +77,9 @@ class CommandCronLoader implements ScheduleLoaderInterface
                 'cron' => $cron = $commandClass::getDefaultDefinition(),
                 'classFQN' => $commandClass
             ];
+            if (is_subclass_of($commandClass, CronCommandOptionsInterface::class)) {
+                $task = array_merge_recursive($task, $commandClass::getLoaderOptions());
+            }
 
             $task = array_filter($task) + [
                 'disabled' => empty($cron)

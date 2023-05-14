@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Oro\Bundle\CronBundle\Command;
 
 interface CronCommandInterface
@@ -9,7 +11,7 @@ interface CronCommandInterface
      * Example: "5 * * * *"
      *
      * @see    \Oro\Bundle\CronBundle\Entity\Schedule::setDefinition()
-     * @return string|null
+     * @return string|null If null - the command must be disabled
      */
     public static function getDefaultDefinition(): ?string;
 }

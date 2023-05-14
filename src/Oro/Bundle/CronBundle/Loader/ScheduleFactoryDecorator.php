@@ -29,7 +29,7 @@ class ScheduleFactoryDecorator implements ScheduleFactoryInterface, ResetInterfa
      */
     public function create(array $config): ScheduleEnvelope
     {
-        $stamps[] = new AsyncCronStamp();
+        $stamps[] = new AsyncCronStamp($config['random_delay'] ?? null, $config['sem_lock'] ?? false);
         $this->cachedSchedule ??= $this->registry->getRepository(Schedule::class)->overwrittenSchedule();
 
         $hash = Schedule::calculateHash($config['command'] ?? null, $config['arguments'] ?? []);
